@@ -11,7 +11,7 @@ class User (
     @Column(name = "user_id")
     val id: Long = 0L,
 
-    @Column(length = 255)
+    @Column(unique = true, length = 255)
     var email : String,
 
     @Column(length = 255)
