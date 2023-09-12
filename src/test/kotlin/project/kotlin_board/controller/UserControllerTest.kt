@@ -8,19 +8,23 @@ import org.mockito.BDDMockito.willDoNothing
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import project.kotlin_board.config.SecurityConfig
 import project.kotlin_board.dto.request.DeleteUserRequest
 import project.kotlin_board.dto.request.SignUpRequest
 import project.kotlin_board.dto.response.UserResponse
-import project.kotlin_board.exception.DuplicatedEmailException
+import project.kotlin_board.exception.BoardApplicationException
+import project.kotlin_board.exception.ErrorCode
 import project.kotlin_board.service.UserService
 
 @DisplayName("유저 컨트롤러 테스트")
+@Import(SecurityConfig::class)
 @WebMvcTest(UserController::class)
 class UserControllerTest {
     @Autowired
@@ -45,7 +49,7 @@ class UserControllerTest {
         mvc.perform(
             post("/api/users")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsBytes(response))
+                .content(objectMapper.writeValueAsBytes(request))
         )
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.email").value(response.email))
@@ -57,11 +61,12 @@ class UserControllerTest {
     fun givenExistingEmail_whenRequestingSignUp_thenReturnError() {
         //given
         val request = createSignupRequest("email@email.com")
-        given(userService.signUp(request)).willThrow(DuplicatedEmailException::class.java)
+        given(userService.signUp(request)).willThrow(BoardApplicationException(ErrorCode.DUPLICATED_EMAIL))
 
         mvc.perform(
             post("/api/users")
                 .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsBytes(request))
         ).andExpect(status().isConflict())
     }
 
@@ -73,6 +78,8 @@ class UserControllerTest {
 
         mvc.perform(
             delete("/api/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsBytes(request))
         ).andExpect(status().isOk())
     }
 
