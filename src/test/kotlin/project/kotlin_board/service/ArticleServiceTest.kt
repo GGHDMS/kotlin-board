@@ -42,13 +42,12 @@ class ArticleServiceTest {
     @Test
     fun givenArticleInfo_whenCreatingArticle_thenCreateArticle() {
         //given
-        val email = "eamil@email.com"
-        val request = createArticleRequest(email)
-        val user = createUser(email)
+        val request = createArticleRequest()
+        val user = createUser()
 
-        given(userRepository.findByEmail(email)).willReturn(user)
+        given(userRepository.findByEmail(request.email)).willReturn(user)
         given(encoder.matches(request.password, user.password)).willReturn(true)
-        given(articleRepository.save(any(Article::class.java))).willReturn(createArticle(1L))
+        given(articleRepository.save(any(Article::class.java))).willReturn(createArticle())
 
         //when
         val result = sut.create(request)
@@ -63,10 +62,9 @@ class ArticleServiceTest {
     @Test
     fun givenUnSignUpUser_whenCreatingArticle_thenReturnException() {
         //given
-        val email = "eamil@email.com"
-        val request = createArticleRequest(email)
+        val request = createArticleRequest()
 
-        given(userRepository.findByEmail(email)).willReturn(null)
+        given(userRepository.findByEmail(request.email)).willReturn(null)
 
         //given & then
         assertThatThrownBy { sut.create(request) }
@@ -79,12 +77,11 @@ class ArticleServiceTest {
     @Test
     fun givenWrongPassword_whenCreatingArticle_thenReturnException() {
         //given
-        val email = "eamil@email.com"
-        val request = createArticleRequest(email)
-        val user = createUser(email)
+        val request = createArticleRequest(password = "wrongPassword")
+        val user = createUser()
 
-        given(userRepository.findByEmail(email)).willReturn(user)
-
+        given(userRepository.findByEmail(request.email)).willReturn(user)
+        given(encoder.matches(request.password, user.password)).willReturn(false)
         //when & then
         assertThatThrownBy { sut.create(request) }
             .isInstanceOf(BoardApplicationException::class.java)
@@ -96,22 +93,22 @@ class ArticleServiceTest {
     @Test
     fun givenArticle_whenUpdatingArticle_thenUpdateArticle() {
         //given
-        val email = "eamil@email.com"
-        val request = createArticleRequest(email)
-        val user = createUser(email)
-        val articleId = 1L
-        val article = createArticle(articleId)
+        val request = createArticleRequest()
+        val user = createUser()
+        val originalArticle = createArticle(title = "Original Title", content = "Original Content")
+        val updatedArticle = createArticle()
+        val articleId = originalArticle.id
 
-        given(userRepository.findByEmail(email)).willReturn(user)
+        given(userRepository.findByEmail(request.email)).willReturn(user)
         given(encoder.matches(request.password, user.password)).willReturn(true)
-        given(articleRepository.findById(any())).willReturn(Optional.of(article))
-        given(articleRepository.save(any())).willReturn(article)
+        given(articleRepository.findById(articleId)).willReturn(Optional.of(originalArticle))
+        given(articleRepository.save(any(Article::class.java))).willReturn(updatedArticle)
 
         //when
         val result = sut.update(articleId, request)
 
         //then
-        then(articleRepository).should().save(any())
+        then(articleRepository).should().save(any(Article::class.java))
         assertThat(result.title).isEqualTo(request.title)
         assertThat(result.content).isEqualTo(request.content)
     }
@@ -120,17 +117,15 @@ class ArticleServiceTest {
     @Test
     fun givenNonExistingArticle_whenUpdatingArticle_thenReturnException() {
         //given
-        val email = "eamil@email.com"
-        val request = createArticleRequest(email)
-        val user = createUser(email)
+        val request = createArticleRequest()
+        val user = createUser()
         val articleId = 1L
 
-        given(userRepository.findByEmail(email)).willReturn(user)
+        given(userRepository.findByEmail(request.email)).willReturn(user)
         given(encoder.matches(request.password, user.password)).willReturn(true)
-        given(articleRepository.findById(any())).willReturn(Optional.empty())
+        given(articleRepository.findById(articleId)).willReturn(Optional.empty())
 
         //when & then
-
         assertThatThrownBy { sut.update(articleId, request) }
             .isInstanceOf(BoardApplicationException::class.java)
             .extracting("errorCode")
@@ -141,15 +136,17 @@ class ArticleServiceTest {
     @Test
     fun givenDifferUser_whenUpdatingArticle_thenReturnException() {
         //given
-        val differEmail = "eamilDifferent@email.com"
-        val request = createArticleRequest(differEmail)
-        val differUser = createUser(2L, differEmail)
-        val articleId = 1L
-        val article = createArticle(articleId)
+        val request = createArticleRequest()
 
-        given(userRepository.findByEmail(differEmail)).willReturn(differUser)
-        given(encoder.matches(request.password, differUser.password)).willReturn(true)
-        given(articleRepository.findById(any())).willReturn(Optional.of(article))
+        val originalAuthor = createUser(2L, "original@email.com")
+        val requestUser = createUser()
+
+        val article = createArticle(user = originalAuthor)
+        val articleId = article.id
+
+        given(userRepository.findByEmail(request.email)).willReturn(requestUser)
+        given(encoder.matches(request.password, requestUser.password)).willReturn(true)
+        given(articleRepository.findById(articleId)).willReturn(Optional.of(article))
 
         //when & then
         assertThatThrownBy { sut.update(articleId, request) }
@@ -162,15 +159,14 @@ class ArticleServiceTest {
     @Test
     fun givenArticle_whenDeletingArticle_thenDeleteArticle() {
         //given
-        val email = "email@email.com"
         val request = createDeleteArticle()
-        val user = createUser(email)
-        val articleId = 1L
-        val article = createArticle(articleId)
+        val user = createUser()
+        val article = createArticle()
+        val articleId = article.id
 
-        given(userRepository.findByEmail(email)).willReturn(user)
+        given(userRepository.findByEmail(request.email)).willReturn(user)
         given(encoder.matches(request.password, user.password)).willReturn(true)
-        given(articleRepository.findById(any())).willReturn(Optional.of(article))
+        given(articleRepository.findById(articleId)).willReturn(Optional.of(article))
         willDoNothing().given(articleRepository).delete(article)
 
         //when
@@ -184,36 +180,36 @@ class ArticleServiceTest {
     @Test
     fun givenNonExistingArticle_whenDeletingArticle_thenReturnException() {
         //given
-        val email = "email@email.com"
         val request = createDeleteArticle()
-        val user = createUser(email)
+        val user = createUser()
         val articleId = 1L
 
-        given(userRepository.findByEmail(email)).willReturn(user)
+        given(userRepository.findByEmail(request.email)).willReturn(user)
         given(encoder.matches(request.password, user.password)).willReturn(true)
-        given(articleRepository.findById(any())).willReturn(Optional.empty())
+        given(articleRepository.findById(articleId)).willReturn(Optional.empty())
 
         //when & then
         assertThatThrownBy { sut.delete(articleId, request) }
             .isInstanceOf(BoardApplicationException::class.java)
             .extracting("errorCode")
             .isEqualTo(ErrorCode.ARTICLE_NOT_FOUND)
-
     }
 
     @DisplayName("게시글 작성자가 아닌 사람이 삭제 요청하면, 예외를 반환한다.")
     @Test
     fun givenDifferUser_whenDeletingArticle_thenReturnException() {
         //given
-        val differEmail = "eamilDifferent@email.com"
-        val request = createDeleteArticle(differEmail)
-        val differUser = createUser(2L, differEmail)
-        val articleId = 1L
-        val article = createArticle(articleId)
+        val request = createDeleteArticle()
 
-        given(userRepository.findByEmail(differEmail)).willReturn(differUser)
-        given(encoder.matches(request.password, differUser.password)).willReturn(true)
-        given(articleRepository.findById(any())).willReturn(Optional.of(article))
+        val originalAuthor = createUser(2L, "original@email.com")
+        val requestUser = createUser()
+
+        val article = createArticle(originalAuthor)
+        val articleId = article.id
+
+        given(userRepository.findByEmail(request.email)).willReturn(requestUser)
+        given(encoder.matches(request.password, requestUser.password)).willReturn(true)
+        given(articleRepository.findById(articleId)).willReturn(Optional.of(article))
 
         //when & then
         assertThatThrownBy { sut.delete(articleId, request) }
@@ -222,39 +218,29 @@ class ArticleServiceTest {
             .isEqualTo(ErrorCode.INVALID_PERMISSION)
     }
 
-    private fun createArticle(articleId: Long): Article {
-        return Article(articleId, "title", "content", createUser())
-    }
+    private fun createArticle(
+        user: User = createUser(),
+        title: String = "title",
+        content: String = "content"
+    ) = Article(1L, title, content, user)
 
-    private fun createUser(): User {
-        return User(1L, "email@email.com", "username", "password")
-    }
+    private fun createUser(
+        userId: Long = 1L,
+        email: String = "email@email.com",
+        username: String = "username",
+        password: String = "password"
+    ) = User(userId, email, username, password)
 
-    private fun createArticleRequest(email: String): ArticleRequest {
-        return createArticleRequest(email, "password")
-    }
+    private fun createArticleRequest(
+        email: String = "email@email.com",
+        password: String = "password",
+        title: String = "title",
+        content: String = "content"
+    ) = ArticleRequest(email, password, title, content)
 
-    private fun createArticleRequest(email: String, password: String): ArticleRequest {
-        return ArticleRequest(email, password, "title", "content")
-    }
+    private fun createDeleteArticle(
+        email: String = "email@email.com",
+        password: String = "password"
+    ) = ArticleDeleteRequest(email, password)
 
-    private fun createUser(email: String): User {
-        return createUser(1L, email)
-    }
-
-    private fun createUser(userId: Long, email: String): User {
-        return createUser(userId, email, "password")
-    }
-
-    private fun createUser(userId: Long, email: String, password: String): User {
-        return User(userId, email, "username", password)
-    }
-
-    private fun createDeleteArticle(): ArticleDeleteRequest {
-        return createDeleteArticle("email@email.com")
-    }
-
-    private fun createDeleteArticle(email: String): ArticleDeleteRequest {
-        return ArticleDeleteRequest(email, "password")
-    }
 }

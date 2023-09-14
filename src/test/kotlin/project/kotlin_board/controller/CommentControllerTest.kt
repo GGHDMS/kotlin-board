@@ -18,55 +18,56 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import project.kotlin_board.config.SecurityConfig
-import project.kotlin_board.dto.request.ArticleDeleteRequest
-import project.kotlin_board.dto.request.ArticleRequest
-import project.kotlin_board.dto.response.ArticleResponse
-import project.kotlin_board.service.ArticleService
+import project.kotlin_board.dto.request.CommentDeleteRequest
+import project.kotlin_board.dto.request.CommentRequest
+import project.kotlin_board.dto.response.CommentResponse
+import project.kotlin_board.service.CommentService
 
-
-@DisplayName("게시글 컨트롤러 테스트")
+@DisplayName("댓글 컨트롤러 테스트")
 @Import(SecurityConfig::class)
-@WebMvcTest(ArticleController::class)
-class ArticleControllerTest {
+@WebMvcTest(CommentController::class)
+class CommentControllerTest {
+
     @Autowired
     private lateinit var mvc: MockMvc
 
     @MockBean
-    private lateinit var articleService: ArticleService
+    private lateinit var commentService : CommentService
 
     @Autowired
     private lateinit var objectMapper: ObjectMapper
 
-
-    @DisplayName("게시글 생성 - 정상 요청")
+    @DisplayName("댓글 생성 - 정상 요청")
     @Test
-    fun givenArticle_whenCreatingArticle_thenCreateArticle() {
+    fun givenComment_whenCreatingComment_thenCreateComment() {
         //given
-        val request = createArticleRequest()
-        val response = createArticleResponse()
-        given(articleService.create(request)).willReturn(response)
+        val articleId = 1L
+        val request = createCommentRequest()
+        val response = createCommentResponse()
+        given(commentService.create(articleId, request)).willReturn(response)
 
         //when & then
         mvc.perform(
-            post("/api/articles")
+            post("/api/articles/$articleId/comments")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsBytes(request))
         )
             .andExpect(status().isCreated)
-            .andExpect(jsonPath("$.title").value(response.title))
+            .andExpect(jsonPath("$.email").value(response.email))
             .andExpect(jsonPath("$.content").value(response.content))
     }
 
 
-    @DisplayName("게시글 생성시 title 과 content 의 값은 Blank 이면 예외를 반환.")
+    @DisplayName("댓글 생성시 title 과 content 의 값은 Blank 이면 예외를 반환.")
     @ParameterizedTest
-    @MethodSource("blankArticleProvider")
-    fun givenBlankValue_whenCreatingArticle_thenReturnException(request: ArticleRequest) {
+    @MethodSource("blankCommentProvider")
+    fun givenBlankValue_whenCreatingComment_thenReturnException(request: CommentRequest) {
         // given:
+        val articleId = 1L
 
         //when & then
         mvc.perform(
-            post("/api/articles")
+            post("/api/articles/$articleId/comments")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsBytes(request))
         )
@@ -74,37 +75,38 @@ class ArticleControllerTest {
 
     }
 
-    @DisplayName("게시글 수정 - 정상 요청")
+    @DisplayName("댓글 수정 - 정상 요청")
     @Test
-    fun givenArticle_whenUpdatingArticle_thenUpdateArticle() {
+    fun givenComment_whenUpdatingComment_thenUpdateComment() {
         //given
         val articleId = 1L
-        val request = createArticleRequest()
-        val response = createArticleResponse()
-        given(articleService.update(articleId, request)).willReturn(response)
+        val commentId = 1L
+        val request = createCommentRequest()
+        val response = createCommentResponse()
+        given(commentService.update(articleId, commentId, request)).willReturn(response)
 
         //when & then
         mvc.perform(
-            put("/api/articles/$articleId")
+            put("/api/articles/$articleId/comments/$commentId")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsBytes(request))
         )
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.id").value(response.id))
-            .andExpect(jsonPath("$.title").value(response.title))
             .andExpect(jsonPath("$.content").value(response.content))
     }
 
-    @DisplayName("게시글 수정시 title 과 content 의 값은 Blank 이면 예외를 반환.")
+    @DisplayName("댓글 수정시 title 과 content 의 값은 Blank 이면 예외를 반환.")
     @ParameterizedTest
-    @MethodSource("blankArticleProvider")
-    fun givenBlankValue_whenUpdatingArticle_thenReturnException(request: ArticleRequest) {
+    @MethodSource("blankCommentProvider")
+    fun givenBlankValue_whenUpdatingComment_thenReturnException(request: CommentRequest) {
         // given:
         val articleId = 1L
+        val commentId = 1L
 
         //when & then
         mvc.perform(
-            put("/api/articles/$articleId")
+            put("/api/articles/$articleId/comments/$commentId")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsBytes(request))
         )
@@ -112,17 +114,18 @@ class ArticleControllerTest {
     }
 
 
-    @DisplayName("게시글 삭제- 정상 요청")
+    @DisplayName("댓글 삭제- 정상 요청")
     @Test
-    fun givenArticleDelete_whenDeletingArticle_thenDeleteArticle() {
+    fun givenCommentDelete_whenDeletingComment_thenDeleteComment() {
         //given
         val articleId = 1L
-        val request = createDeleteArticleRequest()
-        willDoNothing().given(articleService).delete(articleId, request)
+        val commentId = 1L
+        val request = createDeleteCommentRequest()
+        willDoNothing().given(commentService).delete(articleId, commentId, request)
 
         //when & then
         mvc.perform(
-            delete("/api/articles/$articleId")
+            delete("/api/articles/$articleId/comments/$commentId")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsBytes(request))
         )
@@ -131,32 +134,26 @@ class ArticleControllerTest {
 
     companion object {
         @JvmStatic
-        fun blankArticleProvider() = listOf(
-            Arguments.of(ArticleRequest("email@email.com", "password", "", "content")),
-            Arguments.of(ArticleRequest("email@email.com", "password", " ", "content")),
-            Arguments.of(ArticleRequest("email@email.com", "password", "title", " ")),
-            Arguments.of(ArticleRequest("email@email.com", "password", "title", "")),
-            Arguments.of(ArticleRequest("email@email.com", "password", "", "")),
-            Arguments.of(ArticleRequest("email@email.com", "password", " ", " "))
+        fun blankCommentProvider() = listOf(
+            Arguments.of(CommentRequest("email@email.com", "password", "")),
+            Arguments.of(CommentRequest("email@email.com", "password", " ")),
         )
     }
 
-    private fun createArticleRequest(
+    private fun createCommentRequest(
         email: String = "email@email.com",
         password: String = "password",
-        title: String = "title",
         content: String = "content"
-    ) = ArticleRequest(email, password, title, content)
+    ) = CommentRequest(email, password, content)
 
-    private fun createArticleResponse(
+    private fun createCommentResponse(
         id: Long = 1L,
         email: String = "email@email.com",
-        title: String = "title",
         content: String = "content"
-    ) = ArticleResponse(id, email, title, content)
+    ) = CommentResponse(id, email, content)
 
-    private fun createDeleteArticleRequest(
+    private fun createDeleteCommentRequest(
         email : String = "email@email.com",
         password: String = "password"
-    ) = ArticleDeleteRequest(email, password)
+    ) = CommentDeleteRequest(email, password)
 }
