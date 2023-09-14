@@ -1,7 +1,9 @@
 package project.kotlin_board.exception
 
 import org.slf4j.LoggerFactory
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.context.request.WebRequest
@@ -23,6 +25,20 @@ class GlobalControllerAdvice {
             requestURI = request.getDescription(false)
         )
         return ResponseEntity.status(e.errorCode.status).body(errorResponse)
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException::class)
+    fun handleValidationExceptions(e: MethodArgumentNotValidException, request: WebRequest): ResponseEntity<ErrorResponse> {
+        log.error("Validation error occurs {}", e.toString())
+
+        val errorResponse = ErrorResponse(
+            time = LocalDateTime.now(),
+            status = HttpStatus.BAD_REQUEST,
+            message = e.bindingResult.fieldErrors.firstOrNull()?.defaultMessage ?: "Validation error",
+            requestURI = request.getDescription(false)
+        )
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse)
     }
 }
 

@@ -20,4 +20,17 @@ class Comment(
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "article_id")
     var article: Article
-) : BaseTimeEntity()
+) : BaseTimeEntity() {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as User
+
+        return id == other.id
+    }
+
+    override fun hashCode(): Int {
+        return id.hashCode() ?: 0
+    }
+}
