@@ -1,49 +1,78 @@
 package project.kotlin_board.service
 
+import org.springframework.data.repository.findByIdOrNull
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import project.kotlin_board.dto.request.ArticleDeleteRequest
 import project.kotlin_board.dto.request.ArticleRequest
 import project.kotlin_board.dto.response.ArticleResponse
+import project.kotlin_board.exception.BoardApplicationException
+import project.kotlin_board.exception.ErrorCode
+import project.kotlin_board.model.entity.Article
+import project.kotlin_board.model.entity.User
 import project.kotlin_board.model.repository.ArticleRepository
+import project.kotlin_board.model.repository.UserRepository
 
 @Service
 @Transactional
 class ArticleService(
-    private val articleRepository: ArticleRepository
+    private val articleRepository: ArticleRepository,
+    private val userRepository: UserRepository,
+    private val encoder: BCryptPasswordEncoder
 ) {
 
-    fun create(articleRequest: ArticleRequest): ArticleResponse {
-        // 존재하는 회원인지 확인
-
-        // 회원의 패스워드가 맞는지 확인
+    fun create(request: ArticleRequest): ArticleResponse {
+        val user = validateUserByEmail(request.email)
+        validateUserPassword(request.password, user.password)
 
         // 생성
-        return ArticleResponse(1L, "", "", "")
+        val article = request.toEntity(user)
+        user.addArticle(article)
+
+        return ArticleResponse.fromEntity(articleRepository.save(article))
     }
 
-    fun update(articleId : Long, articleRequest: ArticleRequest): ArticleResponse {
-        // 존재하는 회원인지 확인
+    fun update(articleId: Long, request: ArticleRequest): ArticleResponse {
+        val user = validateUserByEmail(request.email)
+        validateUserPassword(request.password, user.password)
 
-        // 회원의 패스워드가 맞는지 확인
+        val article = validateArticleById(articleId)
 
-        // 존재하는 게시글인지 확인
+        if (user != article.user) {
+            throw BoardApplicationException(ErrorCode.INVALID_PERMISSION)
+        }
 
-        // 게시글의 작성자와 요청한 회원 일치 확인
+        article.updateTitleAndContent(title = request.title, content = request.content)
 
-        // 수정
-        return ArticleResponse(1L, "", "", "")
+        return ArticleResponse.fromEntity(articleRepository.save(article))
     }
 
-    fun delete(articleId: Long, articleDeleteRequest: ArticleDeleteRequest) {
-        // 존재하는 회원인지 확인
+    fun delete(articleId: Long, request: ArticleDeleteRequest) {
+        val user = validateUserByEmail(request.email)
+        validateUserPassword(request.password, user.password)
 
-        // 회원의 패스워드가 맞는지 확인
+        val article = validateArticleById(articleId)
 
-        // 존재하는 게시글인지 확인
+        if (user != article.user) {
+            throw BoardApplicationException(ErrorCode.INVALID_PERMISSION)
+        }
 
-        // 게시글의 작성자와 요청한 회원 일치 확인
+        articleRepository.delete(article)
+    }
 
-        // 삭제
+    private fun validateUserByEmail(email: String): User {
+        return userRepository.findByEmail(email) ?: throw BoardApplicationException(ErrorCode.EMAIL_NOT_FOUND)
+    }
+
+    private fun validateUserPassword(requestPassword: String, storedPassword: String) {
+        if (!encoder.matches(requestPassword, storedPassword)) {
+            throw BoardApplicationException(ErrorCode.INVALID_PASSWORD)
+        }
+    }
+
+    private fun validateArticleById(articleId: Long): Article {
+        return articleRepository.findByIdOrNull(articleId)
+            ?: throw BoardApplicationException(ErrorCode.ARTICLE_NOT_FOUND)
     }
 }

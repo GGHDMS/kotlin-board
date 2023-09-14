@@ -48,7 +48,7 @@ class ArticleControllerTest {
 
         //when & then
         mvc.perform(
-            post("/api/Articles")
+            post("/api/articles")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsBytes(request))
         )
@@ -66,7 +66,7 @@ class ArticleControllerTest {
 
         //when & then
         mvc.perform(
-            post("/api/Articles")
+            post("/api/articles")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsBytes(request))
         )
@@ -85,7 +85,7 @@ class ArticleControllerTest {
 
         //when & then
         mvc.perform(
-            put("/api/Articles/$articleId")
+            put("/api/articles/$articleId")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsBytes(request))
         )
@@ -104,7 +104,7 @@ class ArticleControllerTest {
 
         //when & then
         mvc.perform(
-            put("/api/Articles/$articleId")
+            put("/api/articles/$articleId")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsBytes(request))
         )
@@ -122,7 +122,7 @@ class ArticleControllerTest {
 
         //when & then
         mvc.perform(
-            delete("/api/Articles/$articleId")
+            delete("/api/articles/$articleId")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsBytes(request))
         )
