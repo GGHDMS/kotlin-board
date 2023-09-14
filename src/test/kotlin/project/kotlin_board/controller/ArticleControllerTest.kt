@@ -129,7 +129,6 @@ class ArticleControllerTest {
             .andExpect(status().isOk)
     }
 
-
     companion object {
         @JvmStatic
         fun blankArticleProvider() = listOf(
@@ -142,17 +141,22 @@ class ArticleControllerTest {
         )
     }
 
+    private fun createArticleRequest(
+        email: String = "email@email.com",
+        password: String = "password",
+        title: String = "title",
+        content: String = "content"
+    ) = ArticleRequest(email, password, title, content)
 
-    private fun createArticleRequest(): ArticleRequest {
-        return ArticleRequest("email@email.com", "password", "title", "content")
-    }
+    private fun createArticleResponse(
+        id: Long = 1L,
+        email: String = "email@email.com",
+        title: String = "title",
+        content: String = "content"
+    ) = ArticleResponse(id, email, title, content)
 
-    private fun createArticleResponse(): ArticleResponse {
-        return ArticleResponse(1L, "email@email.com", "title", "content")
-    }
-
-    private fun createDeleteArticleRequest(): ArticleDeleteRequest {
-        return ArticleDeleteRequest("email@email.com", "password")
-    }
-
+    private fun createDeleteArticleRequest(
+        email : String = "email@email.com",
+        password: String = "password"
+    ) = ArticleDeleteRequest(email, password)
 }
