@@ -36,7 +36,12 @@ class UserService(
         )
 
         // Save the User entity
-        return UserResponse.fromEntity(userRepository.save(user))
+        val savedUser = userRepository.save(user)
+
+        return UserResponse(
+            email = savedUser.email,
+            username = savedUser.username
+        )
     }
 
     fun deleteUser(request: DeleteUserRequest) {

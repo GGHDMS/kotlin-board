@@ -35,13 +35,17 @@ class CommentService(
         // 존재하는 게시글 검사
         val article = validateArticleById(articleId)
 
-        val comment = commentRepository.save(request.toEntity(user, article))
+        val comment = commentRepository.save(
+            Comment(content = request.content, user = user, article = article)
+        )
 
         user.addComment(comment)
         article.addComment(comment)
 
         // 댓글 저장
-        return CommentResponse.fromEntity(comment)
+        return CommentResponse(
+            id = comment.id, email = comment.user.email, content = comment.content,
+        )
     }
 
     fun update(articleId: Long, commentId: Long, request: CommentRequest): CommentResponse {
@@ -64,7 +68,11 @@ class CommentService(
 
         comment.updateContent(request.content)
 
-        return CommentResponse.fromEntity(commentRepository.save(comment))
+        val savedComment = commentRepository.save(comment)
+
+        return CommentResponse(
+            id = savedComment.id, email = savedComment.user.email, content = savedComment.content,
+        )
     }
 
     fun delete(articleId: Long, commentId: Long, request: CommentDeleteRequest) {
