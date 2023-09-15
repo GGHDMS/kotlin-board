@@ -1,5 +1,6 @@
 package project.kotlin_board.exception
 
+import com.fasterxml.jackson.module.kotlin.MissingKotlinParameterException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -28,13 +29,33 @@ class GlobalControllerAdvice {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException::class)
-    fun handleValidationExceptions(e: MethodArgumentNotValidException, request: WebRequest): ResponseEntity<ErrorResponse> {
+    fun handleValidationExceptions(
+        e: MethodArgumentNotValidException,
+        request: WebRequest
+    ): ResponseEntity<ErrorResponse> {
         log.error("Validation error occurs {}", e.toString())
 
         val errorResponse = ErrorResponse(
             time = LocalDateTime.now(),
             status = HttpStatus.BAD_REQUEST,
             message = e.bindingResult.fieldErrors.firstOrNull()?.defaultMessage ?: "Validation error",
+            requestURI = request.getDescription(false)
+        )
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse)
+    }
+
+    @ExceptionHandler(MissingKotlinParameterException::class)
+    fun handleMissingKotlinParameter(
+        e: MissingKotlinParameterException,
+        request : WebRequest
+    ): ResponseEntity<ErrorResponse> {
+        log.error("Missing parameter error occurs {}", e.toString())
+
+        val errorResponse = ErrorResponse(
+            time = LocalDateTime.now(),
+            status = HttpStatus.BAD_REQUEST,
+            message = "Missing parameter: ${e.parameter.name}",
             requestURI = request.getDescription(false)
         )
 
