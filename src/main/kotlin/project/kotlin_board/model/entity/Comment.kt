@@ -21,16 +21,22 @@ class Comment(
     @JoinColumn(name = "article_id")
     var article: Article
 ) : BaseTimeEntity() {
+
+    fun updateContent(content: String) {
+        this.content = content
+    }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (javaClass != other?.javaClass) return false
+        if (other !is Comment) return false
 
-        other as User
-
+        // 객체의 id가 0L이면 항상 false 반환
+        if (id == 0L || other.id == 0L) return false
         return id == other.id
     }
 
     override fun hashCode(): Int {
-        return id.hashCode() ?: 0
+        // 객체의 id가 0L이면 기본 hashCode 반환
+        return if (id == 0L) super.hashCode() else id.hashCode()
     }
 }

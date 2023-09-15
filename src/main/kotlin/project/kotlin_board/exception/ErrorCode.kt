@@ -12,6 +12,9 @@ enum class ErrorCode(
     INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "Password is invalid"),
 
     ARTICLE_NOT_FOUND(HttpStatus.NOT_FOUND, "Article not founded"),
+
+    COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "Comment not founded"),
+
     INVALID_PERMISSION(HttpStatus.UNAUTHORIZED, "Permission is invalid"),
 }
 

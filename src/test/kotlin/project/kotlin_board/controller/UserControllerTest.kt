@@ -40,8 +40,8 @@ class UserControllerTest {
     @Test
     fun givenSignUpRequest_whenRequestingSignUp_thenReturnUserResponse() {
         //given
-        val request = createSignupRequest("email@email.com")
-        val response = createUserResponse("email@email.com")
+        val request = createSignupRequest()
+        val response = createUserResponse()
 
         given(userService.signUp(request)).willReturn(response)
 
@@ -60,7 +60,7 @@ class UserControllerTest {
     @Test
     fun givenExistingEmail_whenRequestingSignUp_thenReturnError() {
         //given
-        val request = createSignupRequest("email@email.com")
+        val request = createSignupRequest()
         given(userService.signUp(request)).willThrow(BoardApplicationException(ErrorCode.DUPLICATED_EMAIL))
 
         mvc.perform(
@@ -73,7 +73,7 @@ class UserControllerTest {
     @DisplayName("존재하는 유저 삭제 요청 - 정상 호출")
     @Test
     fun givenExistingUserInfo_whenDeletingUser_thenDeleteUser() {
-        val request = createDeleteUserRequest("email@email.com")
+        val request = createDeleteUserRequest()
         willDoNothing().given(userService).deleteUser(request)
 
         mvc.perform(
@@ -83,15 +83,20 @@ class UserControllerTest {
         ).andExpect(status().isOk())
     }
 
-    private fun createSignupRequest(email: String): SignUpRequest {
-        return SignUpRequest(email, "password", "username")
-    }
+    private fun createSignupRequest(
+        email: String = "email@email.com",
+        password: String = "password",
+        username: String = "username"
+    ) = SignUpRequest(email, password, username)
 
-    private fun createDeleteUserRequest(email: String): DeleteUserRequest {
-        return DeleteUserRequest(email, "password")
-    }
+    private fun createDeleteUserRequest(
+        email: String = "email@email.com",
+        password: String = "password"
+    ) = DeleteUserRequest(email, password)
 
-    private fun createUserResponse(email: String): UserResponse {
-        return UserResponse(email, "username")
-    }
+    private fun createUserResponse(
+        email: String = "email@email.com",
+        username: String = "username"
+    ) = UserResponse(email, username)
+
 }

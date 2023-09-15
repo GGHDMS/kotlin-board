@@ -27,10 +27,10 @@ class ArticleService(
         validateUserPassword(request.password, user.password)
 
         // 생성
-        val article = request.toEntity(user)
+        val article = articleRepository.save(request.toEntity(user))
         user.addArticle(article)
 
-        return ArticleResponse.fromEntity(articleRepository.save(article))
+        return ArticleResponse.fromEntity(article)
     }
 
     fun update(articleId: Long, request: ArticleRequest): ArticleResponse {
