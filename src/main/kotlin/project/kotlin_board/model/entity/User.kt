@@ -21,13 +21,21 @@ class User(
     var password: String,
 
     @OneToMany(mappedBy = "user", cascade = [CascadeType.REMOVE])
-    var articles: MutableList<Article> = mutableListOf()
+    var articles: MutableList<Article> = mutableListOf(),
+
+    @OneToMany(mappedBy = "user", cascade = [CascadeType.REMOVE])
+    var comments: MutableList<Comment> = mutableListOf()
 
 ) : BaseTimeEntity() {
 
     fun addArticle(article: Article) {
         articles.add(article)
         article.user = this
+    }
+
+    fun addComment(comment: Comment) {
+        comments.add(comment)
+        comment.user = this
     }
 
     override fun equals(other: Any?): Boolean {

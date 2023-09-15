@@ -21,9 +21,14 @@ class Comment(
     @JoinColumn(name = "article_id")
     var article: Article
 ) : BaseTimeEntity() {
+
+    fun updateContent(content: String) {
+        this.content = content
+    }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is User) return false
+        if (other !is Comment) return false
 
         // 객체의 id가 0L이면 항상 false 반환
         if (id == 0L || other.id == 0L) return false

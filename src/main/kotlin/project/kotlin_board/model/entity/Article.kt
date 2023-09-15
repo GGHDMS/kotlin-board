@@ -18,8 +18,18 @@ class Article(
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
-    var user: User
+    var user: User,
+
+    @OneToMany(mappedBy = "article", cascade = [CascadeType.REMOVE])
+    var comments: MutableList<Comment> = mutableListOf()
+
 ) : BaseTimeEntity() {
+
+    fun addComment(comment: Comment) {
+        comments.add(comment)
+        comment.article= this
+    }
+
     fun updateTitleAndContent(title: String, content: String) {
         this.title = title
         this.content = content
@@ -27,7 +37,7 @@ class Article(
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is User) return false
+        if (other !is Article) return false
 
         // 객체의 id가 0L이면 항상 false 반환
         if (id == 0L || other.id == 0L) return false
