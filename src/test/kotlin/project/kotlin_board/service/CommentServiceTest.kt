@@ -56,7 +56,7 @@ class CommentServiceTest {
         given(userRepository.findByEmail(request.email)).willReturn(user)
         given(encoder.matches(request.password, user.password)).willReturn(true)
         given(articleRepository.findById(articleId)).willReturn(Optional.of(article))
-        given(commentRepository.save(any(Comment::class.java))).willReturn(createComment(content = request.content, user = user, article = article))
+        given(commentRepository.save(any(Comment::class.java))).willReturn(createComment())
 
         //when
         val result = sut.create(articleId, request)
@@ -140,7 +140,7 @@ class CommentServiceTest {
         given(userRepository.findByEmail(request.email)).willReturn(user)
         given(encoder.matches(request.password, user.password)).willReturn(true)
         given(articleRepository.findById(articleId)).willReturn(Optional.of(article))
-        given(commentRepository.findById(commentId)).willReturn(Optional.of(originalComment))
+        given(commentRepository.findByIdAndArticleId(commentId, articleId)).willReturn(originalComment)
         given(commentRepository.save(any(Comment::class.java))).willReturn(updatedComment)
 
         //when
@@ -149,7 +149,7 @@ class CommentServiceTest {
         //then
         then(userRepository).should().findByEmail(request.email)
         then(articleRepository).should().findById(articleId)
-        then(commentRepository).should().findById(commentId)
+        then(commentRepository).should().findByIdAndArticleId(commentId, articleId)
         then(commentRepository).should().save(any(Comment::class.java))
 
         assertThat(result.content).isEqualTo(request.content)
@@ -227,7 +227,7 @@ class CommentServiceTest {
         given(userRepository.findByEmail(request.email)).willReturn(user)
         given(encoder.matches(request.password, user.password)).willReturn(true)
         given(articleRepository.findById(articleId)).willReturn(Optional.of(article))
-        given(commentRepository.findById(commentId)).willReturn(Optional.empty())
+        given(commentRepository.findByIdAndArticleId(commentId, articleId)).willReturn(null)
 
         //when & then
         assertThatThrownBy { sut.update(articleId, commentId, request) }
@@ -254,7 +254,7 @@ class CommentServiceTest {
         given(userRepository.findByEmail(request.email)).willReturn(requestUser)
         given(encoder.matches(request.password, requestUser.password)).willReturn(true)
         given(articleRepository.findById(articleId)).willReturn(Optional.of(article))
-        given(commentRepository.findById(commentId)).willReturn(Optional.of(comment))
+        given(commentRepository.findByIdAndArticleId(commentId, articleId)).willReturn(comment)
 
         //then & then
         assertThatThrownBy { sut.update(articleId, commentId, request) }
@@ -279,7 +279,7 @@ class CommentServiceTest {
         given(userRepository.findByEmail(request.email)).willReturn(user)
         given(encoder.matches(request.password, user.password)).willReturn(true)
         given(articleRepository.findById(articleId)).willReturn(Optional.of(article))
-        given(commentRepository.findById(commentId)).willReturn(Optional.of(comment))
+        given(commentRepository.findByIdAndArticleId(commentId, articleId)).willReturn(comment)
         willDoNothing().given(commentRepository).delete(comment)
 
         //when
@@ -288,7 +288,7 @@ class CommentServiceTest {
         //then
         then(userRepository).should().findByEmail(request.email)
         then(articleRepository).should().findById(articleId)
-        then(commentRepository).should().findById(commentId)
+        then(commentRepository).should().findByIdAndArticleId(commentId, articleId)
         then(commentRepository).should().delete(comment)
     }
 
@@ -362,7 +362,7 @@ class CommentServiceTest {
         given(userRepository.findByEmail(request.email)).willReturn(user)
         given(encoder.matches(request.password, user.password)).willReturn(true)
         given(articleRepository.findById(articleId)).willReturn(Optional.of(article))
-        given(commentRepository.findById(commentId)).willReturn(Optional.empty())
+        given(commentRepository.findByIdAndArticleId(commentId, articleId)).willReturn(null)
 
         //when & then
         assertThatThrownBy { sut.delete(articleId, commentId, request) }
@@ -386,10 +386,10 @@ class CommentServiceTest {
         val comment = createComment(user = originalAuthor)
         val commentId = comment.id
 
-        given(userRepository.findByEmail(any())).willReturn(requestUser)
+        given(userRepository.findByEmail(request.email)).willReturn(requestUser)
         given(encoder.matches(request.password, requestUser.password)).willReturn(true)
         given(articleRepository.findById(articleId)).willReturn(Optional.of(article))
-        given(commentRepository.findById(commentId)).willReturn(Optional.of(comment))
+        given(commentRepository.findByIdAndArticleId(commentId, articleId)).willReturn(comment)
 
         //then & then
         assertThatThrownBy { sut.delete(articleId, commentId, request) }
