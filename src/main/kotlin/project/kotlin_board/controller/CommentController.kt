@@ -5,39 +5,37 @@ import org.springframework.web.bind.annotation.*
 import project.kotlin_board.dto.request.CommentDeleteRequest
 import project.kotlin_board.dto.request.CommentRequest
 import project.kotlin_board.dto.response.CommentResponse
+import project.kotlin_board.service.CommentService
+import javax.validation.Valid
 
 @RestController
 @RequestMapping("/api/articles/{articleId}/comments")
-class CommentController {
+class CommentController(
+    private val commentService: CommentService
+) {
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
-    fun create(@PathVariable articleId: Long, @RequestBody commentRequest: CommentRequest): CommentResponse {
-        //서비스 로직 호출
-
-        return CommentResponse(1L, "", "")
+    fun create(@PathVariable articleId: Long, @Valid @RequestBody commentRequest: CommentRequest): CommentResponse {
+        return commentService.create(articleId, commentRequest)
     }
 
     @PutMapping("/{commentId}")
     fun update(
         @PathVariable articleId: Long,
         @PathVariable commentId: Long,
-        @RequestBody commentRequest: CommentRequest
+        @Valid @RequestBody commentRequest: CommentRequest
     ): CommentResponse {
-        // 서비스 로직 호출
-
-        return CommentResponse(1L, "", "")
+        return commentService.update(articleId, commentId, commentRequest)
     }
 
     @DeleteMapping("/{commentId}")
     fun delete(
         @PathVariable articleId: Long,
         @PathVariable commentId: Long,
-        @RequestBody commentDeleteRequest: CommentDeleteRequest
+        @Valid @RequestBody commentDeleteRequest: CommentDeleteRequest
     ) {
-
-        //서비스 로직 호출
+        return commentService.delete(articleId, commentId, commentDeleteRequest)
     }
-
 
 }
