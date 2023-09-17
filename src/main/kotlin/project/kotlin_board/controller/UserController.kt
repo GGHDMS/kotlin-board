@@ -6,6 +6,7 @@ import project.kotlin_board.dto.request.DeleteUserRequest
 import project.kotlin_board.dto.request.SignUpRequest
 import project.kotlin_board.dto.response.UserResponse
 import project.kotlin_board.service.UserService
+import javax.validation.Valid
 
 @RestController
 @RequestMapping("/api/users")
@@ -15,12 +16,12 @@ class UserController(
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
-    fun signUp(@RequestBody signUpRequest: SignUpRequest) : UserResponse {
+    fun signUp(@Valid @RequestBody signUpRequest: SignUpRequest): UserResponse {
         return userService.signUp(signUpRequest)
     }
 
     @DeleteMapping
-    fun deleteUser(@RequestBody deleteUserRequest: DeleteUserRequest) {
+    fun deleteUser(@Valid @RequestBody deleteUserRequest: DeleteUserRequest) {
         return userService.deleteUser(deleteUserRequest)
     }
 

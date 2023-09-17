@@ -3,6 +3,9 @@ package project.kotlin_board.controller
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.MethodSource
 import org.mockito.BDDMockito.given
 import org.mockito.BDDMockito.willDoNothing
 import org.springframework.beans.factory.annotation.Autowired
@@ -70,6 +73,22 @@ class UserControllerTest {
         ).andExpect(status().isConflict())
     }
 
+    @DisplayName("회원 가입시 email 과 password 의 값이 잘못된 형식이거나 Blank 이면 예외를 반환.")
+    @ParameterizedTest
+    @MethodSource("wrongSignupProvider")
+    fun givenWrongValue_whenRequestingSignUp_thenReturnException(request: SignUpRequest) {
+        // given:
+
+        //when & then
+        mvc.perform(
+            post("/api/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsBytes(request))
+        )
+            .andExpect(status().isBadRequest)
+
+    }
+
     @DisplayName("존재하는 유저 삭제 요청 - 정상 호출")
     @Test
     fun givenExistingUserInfo_whenDeletingUser_thenDeleteUser() {
@@ -81,6 +100,18 @@ class UserControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsBytes(request))
         ).andExpect(status().isOk())
+    }
+
+    companion object {
+        @JvmStatic
+        fun wrongSignupProvider() = listOf(
+            Arguments.of(SignUpRequest("","password", "username")),
+            Arguments.of(SignUpRequest(" ", "password", "username")),
+            Arguments.of(SignUpRequest("email@email.com", "", "username")),
+            Arguments.of(SignUpRequest("email@email.com", " ", "username")),
+            Arguments.of(SignUpRequest("email", "password", "username")),
+            Arguments.of(SignUpRequest("email@", "password", "username"))
+        )
     }
 
     private fun createSignupRequest(
