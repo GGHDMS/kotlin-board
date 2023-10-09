@@ -1,6 +1,7 @@
 package project.kotlin_board.model.entity
 
 import project.kotlin_board.model.BaseTimeEntity
+import project.kotlin_board.model.Role
 import javax.persistence.*
 
 @Entity
@@ -25,6 +26,13 @@ class User(
     @Column(length = 255)
     var password: String,
 
+    @Column(length = 255, nullable = true)
+    var refreshToken: String? = null,
+
+    @Column(length = 255)
+    @Enumerated(EnumType.STRING)
+    var role: Role,
+
     @OneToMany(mappedBy = "user", cascade = [CascadeType.REMOVE])
     var articles: MutableList<Article> = mutableListOf(),
 
@@ -41,6 +49,10 @@ class User(
     fun addComment(comment: Comment) {
         comments.add(comment)
         comment.user = this
+    }
+
+    fun saveRefreshToken(refreshToken: String) {
+        this.refreshToken = refreshToken
     }
 
     override fun equals(other: Any?): Boolean {
