@@ -1,17 +1,15 @@
 package project.kotlin_board.service
 
 import org.springframework.data.repository.findByIdOrNull
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import project.kotlin_board.dto.request.CommentDeleteRequest
+import project.kotlin_board.dto.UserDto
 import project.kotlin_board.dto.request.CommentRequest
 import project.kotlin_board.dto.response.CommentResponse
 import project.kotlin_board.exception.BoardApplicationException
 import project.kotlin_board.exception.ErrorCode
 import project.kotlin_board.model.entity.Article
 import project.kotlin_board.model.entity.Comment
-import project.kotlin_board.model.entity.User
 import project.kotlin_board.model.repository.ArticleRepository
 import project.kotlin_board.model.repository.CommentRepository
 import project.kotlin_board.model.repository.UserRepository
@@ -22,15 +20,10 @@ class CommentService(
     private val userRepository: UserRepository,
     private val articleRepository: ArticleRepository,
     private val commentRepository: CommentRepository,
-    private val encoder: BCryptPasswordEncoder
 ) {
 
-    fun create(articleId: Long, request: CommentRequest): CommentResponse {
-        // 존재하는 회원 검사
-        val user = validateUserByEmail(request.email)
-
-        // 이메일 비밀 번호 체크
-        validateUserPassword(request.password, user.password)
+    fun create(articleId: Long, request: CommentRequest, userDto: UserDto): CommentResponse {
+        val user = userRepository.getReferenceById(userDto.id)
 
         // 존재하는 게시글 검사
         val article = validateArticleById(articleId)
@@ -48,12 +41,8 @@ class CommentService(
         )
     }
 
-    fun update(articleId: Long, commentId: Long, request: CommentRequest): CommentResponse {
-        // 존재하는 회원 검사
-        val user = validateUserByEmail(request.email)
-
-        // 이메일 비밀 번호 체크
-        validateUserPassword(request.password, user.password)
+    fun update(articleId: Long, commentId: Long, request: CommentRequest, userDto: UserDto): CommentResponse {
+        val user = userRepository.getReferenceById(userDto.id)
 
         // 존재하는 게시글 검사
         validateArticleById(articleId)
@@ -75,12 +64,8 @@ class CommentService(
         )
     }
 
-    fun delete(articleId: Long, commentId: Long, request: CommentDeleteRequest) {
-        // 존재하는 회원 검사
-        val user = validateUserByEmail(request.email)
-
-        // 이메일 비밀 번호 체크
-        validateUserPassword(request.password, user.password)
+    fun delete(articleId: Long, commentId: Long, userDto: UserDto) {
+        val user = userRepository.getReferenceById(userDto.id)
 
         // 존재하는 게시글 검사
         validateArticleById(articleId)
@@ -95,16 +80,6 @@ class CommentService(
 
         // 삭제
         commentRepository.delete(comment)
-    }
-
-    private fun validateUserByEmail(email: String): User {
-        return userRepository.findByEmail(email) ?: throw BoardApplicationException(ErrorCode.EMAIL_NOT_FOUND)
-    }
-
-    private fun validateUserPassword(requestPassword: String, storedPassword: String) {
-        if (!encoder.matches(requestPassword, storedPassword)) {
-            throw BoardApplicationException(ErrorCode.INVALID_PASSWORD)
-        }
     }
 
     private fun validateArticleById(articleId: Long): Article {
