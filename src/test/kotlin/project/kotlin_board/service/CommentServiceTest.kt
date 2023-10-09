@@ -10,11 +10,11 @@ import org.mockito.BDDMockito.*
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
-import project.kotlin_board.dto.request.CommentDeleteRequest
+import project.kotlin_board.dto.UserDto
 import project.kotlin_board.dto.request.CommentRequest
 import project.kotlin_board.exception.BoardApplicationException
 import project.kotlin_board.exception.ErrorCode
+import project.kotlin_board.model.Role
 import project.kotlin_board.model.entity.Article
 import project.kotlin_board.model.entity.Comment
 import project.kotlin_board.model.entity.User
@@ -39,69 +39,30 @@ class CommentServiceTest {
     @Mock
     lateinit var userRepository: UserRepository
 
-    @Mock
-    lateinit var encoder: BCryptPasswordEncoder
-
-
     @DisplayName("댓글 생성 - 정상 요청")
     @Test
     fun givenCommentInfo_whenCreatingComment_thenCreateComment() {
         //given
         val request = createCommentRequest()
         val user = createUser()
-        
+        val userDto = createUserDto()
+
         val article = createArticle()
         val articleId = article.id
 
-        given(userRepository.findByEmail(request.email)).willReturn(user)
-        given(encoder.matches(request.password, user.password)).willReturn(true)
+        given(userRepository.getReferenceById(userDto.id)).willReturn(user)
         given(articleRepository.findById(articleId)).willReturn(Optional.of(article))
         given(commentRepository.save(any(Comment::class.java))).willReturn(createComment())
 
         //when
-        val result = sut.create(articleId, request)
+        val result = sut.create(articleId, request, userDto)
 
         //then
-        then(userRepository).should().findByEmail(request.email)
+        then(userRepository).should().getReferenceById(userDto.id)
         then(articleRepository).should().findById(articleId)
         then(commentRepository).should().save(any(Comment::class.java))
 
         assertThat(result.content).isEqualTo(request.content)
-        assertThat(result.email).isEqualTo(request.email)
-    }
-
-    @DisplayName("존재 하지 않는 유저가 댓글 생성 요청시 예외를 반환한다.")
-    @Test
-    fun givenNonExistingUser_whenCreatingComment_thenReturnException() {
-        //given
-        val articleId = 1L
-        val request = createCommentRequest()
-
-        given(userRepository.findByEmail(request.email)).willReturn(null)
-
-        //when & then
-        assertThatThrownBy { sut.create(articleId, request) }
-            .isInstanceOf(BoardApplicationException::class.java)
-            .extracting("errorCode")
-            .isEqualTo(ErrorCode.EMAIL_NOT_FOUND)
-    }
-
-    @DisplayName("비밀 번호가 틀린 유저가 댓글 생성 요청시 예외를 반환한다.")
-    @Test
-    fun givenWrongPassword_whenCreatingComment_thenReturnException() {
-        //given
-        val articleId = 1L
-        val request = createCommentRequest(password = "wrongPassword")
-        val user = createUser()
-
-        given(userRepository.findByEmail(request.email)).willReturn(user)
-        given(encoder.matches(request.password, user.password)).willReturn(false)
-
-        //when & then
-        assertThatThrownBy { sut.create(articleId, request) }
-            .isInstanceOf(BoardApplicationException::class.java)
-            .extracting("errorCode")
-            .isEqualTo(ErrorCode.INVALID_PASSWORD)
     }
 
     @DisplayName("존재하지 않는 게시글로 댓글 생성 요청시 예외를 반환한다.")
@@ -111,13 +72,13 @@ class CommentServiceTest {
         val articleId = 1L
         val request = createCommentRequest()
         val user = createUser()
+        val userDto = createUserDto()
 
-        given(userRepository.findByEmail(request.email)).willReturn(user)
-        given(encoder.matches(request.password, user.password)).willReturn(true)
+        given(userRepository.getReferenceById(userDto.id)).willReturn(user)
         given(articleRepository.findById(articleId)).willReturn(Optional.empty())
 
         //when & then
-        assertThatThrownBy { sut.create(articleId, request) }
+        assertThatThrownBy { sut.create(articleId, request, userDto) }
             .isInstanceOf(BoardApplicationException::class.java)
             .extracting("errorCode")
             .isEqualTo(ErrorCode.ARTICLE_NOT_FOUND)
@@ -129,68 +90,30 @@ class CommentServiceTest {
         //given
         val request = createCommentRequest()
         val user = createUser()
-        
+        val userDto = createUserDto()
+
         val article = createArticle()
         val articleId = article.id
-        
+
         val originalComment = createComment(content = "Original Content")
         val updatedComment = createComment(content = request.content)
         val commentId = originalComment.id
 
-        given(userRepository.findByEmail(request.email)).willReturn(user)
-        given(encoder.matches(request.password, user.password)).willReturn(true)
+        given(userRepository.getReferenceById(userDto.id)).willReturn(user)
         given(articleRepository.findById(articleId)).willReturn(Optional.of(article))
         given(commentRepository.findByIdAndArticleId(commentId, articleId)).willReturn(originalComment)
         given(commentRepository.save(any(Comment::class.java))).willReturn(updatedComment)
 
         //when
-        val result = sut.update(articleId, commentId, request)
+        val result = sut.update(articleId, commentId, request, userDto)
 
         //then
-        then(userRepository).should().findByEmail(request.email)
+        then(userRepository).should().getReferenceById(userDto.id)
         then(articleRepository).should().findById(articleId)
         then(commentRepository).should().findByIdAndArticleId(commentId, articleId)
         then(commentRepository).should().save(any(Comment::class.java))
 
         assertThat(result.content).isEqualTo(request.content)
-        assertThat(result.email).isEqualTo(request.email)
-    }
-
-    @DisplayName("존재 하지 않는 유저가 댓글 수정 요청시 예외를 반환한다.")
-    @Test
-    fun givenNonExistingUser_whenUpdatingComment_thenReturnException() {
-        //given
-        val articleId = 1L
-        val commentId = 1L
-        val request = createCommentRequest()
-
-        given(userRepository.findByEmail(request.email)).willReturn(null)
-
-        //when & then
-        assertThatThrownBy { sut.update(articleId, commentId, request) }
-            .isInstanceOf(BoardApplicationException::class.java)
-            .extracting("errorCode")
-            .isEqualTo(ErrorCode.EMAIL_NOT_FOUND)
-
-    }
-
-    @DisplayName("비밀 번호를 틀린 유저가 댓글 수정 요청시 예외를 반환한다.")
-    @Test
-    fun givenWrongPassword_whenUpdatingComment_thenReturnException() {
-        //given
-        val articleId = 1L
-        val commentId = 1L
-        val request = createCommentRequest(password = "wrongPassword")
-        val user = createUser()
-
-        given(userRepository.findByEmail(request.email)).willReturn(user)
-        given(encoder.matches(request.password, user.password)).willReturn(false)
-
-        //when & then
-        assertThatThrownBy { sut.update(articleId, commentId, request) }
-            .isInstanceOf(BoardApplicationException::class.java)
-            .extracting("errorCode")
-            .isEqualTo(ErrorCode.INVALID_PASSWORD)
     }
 
     @DisplayName("존재 하지 않는 게시글로 댓글 수정 요청시 예외를 반환한다.")
@@ -201,13 +124,13 @@ class CommentServiceTest {
         val commentId = 1L
         val request = createCommentRequest()
         val user = createUser()
+        val userDto = createUserDto()
 
-        given(userRepository.findByEmail(request.email)).willReturn(user)
-        given(encoder.matches(request.password, user.password)).willReturn(true)
+        given(userRepository.getReferenceById(userDto.id)).willReturn(user)
         given(articleRepository.findById(articleId)).willReturn(Optional.empty())
 
         //when & then
-        assertThatThrownBy { sut.update(articleId, commentId, request) }
+        assertThatThrownBy { sut.update(articleId, commentId, request, userDto) }
             .isInstanceOf(BoardApplicationException::class.java)
             .extracting("errorCode")
             .isEqualTo(ErrorCode.ARTICLE_NOT_FOUND)
@@ -220,17 +143,17 @@ class CommentServiceTest {
         val commentId = 1L
         val request = createCommentRequest()
         val user = createUser()
-        
+        val userDto = createUserDto()
+
         val article = createArticle()
         val articleId = article.id
 
-        given(userRepository.findByEmail(request.email)).willReturn(user)
-        given(encoder.matches(request.password, user.password)).willReturn(true)
+        given(userRepository.getReferenceById(userDto.id)).willReturn(user)
         given(articleRepository.findById(articleId)).willReturn(Optional.of(article))
         given(commentRepository.findByIdAndArticleId(commentId, articleId)).willReturn(null)
 
         //when & then
-        assertThatThrownBy { sut.update(articleId, commentId, request) }
+        assertThatThrownBy { sut.update(articleId, commentId, request, userDto) }
             .isInstanceOf(BoardApplicationException::class.java)
             .extracting("errorCode")
             .isEqualTo(ErrorCode.COMMENT_NOT_FOUND)
@@ -242,22 +165,22 @@ class CommentServiceTest {
         //given
         val request = createCommentRequest()
 
-        val originalAuthor = createUser(id = 2L, email = "original@email.com")
+        val originalAuthor = createUser(userId = 2L, email = "original@email.com")
         val requestUser = createUser()
+        val userDto = createUserDto()
 
         val article = createArticle()
         val articleId = article.id
-        
+
         val comment = createComment(user = originalAuthor)
         val commentId = comment.id
 
-        given(userRepository.findByEmail(request.email)).willReturn(requestUser)
-        given(encoder.matches(request.password, requestUser.password)).willReturn(true)
+        given(userRepository.getReferenceById(userDto.id)).willReturn(requestUser)
         given(articleRepository.findById(articleId)).willReturn(Optional.of(article))
         given(commentRepository.findByIdAndArticleId(commentId, articleId)).willReturn(comment)
 
         //then & then
-        assertThatThrownBy { sut.update(articleId, commentId, request) }
+        assertThatThrownBy { sut.update(articleId, commentId, request, userDto) }
             .isInstanceOf(BoardApplicationException::class.java)
             .extracting("errorCode")
             .isEqualTo(ErrorCode.INVALID_PERMISSION)
@@ -267,65 +190,28 @@ class CommentServiceTest {
     @Test
     fun givenComment_whenDeletingComment_thenDeleteComment() {
         //given
-        val request = createCommentDeleteRequest()
         val user = createUser()
-        
+        val userDto = createUserDto()
+
         val article = createArticle()
         val articleId = article.id
-        
+
         val comment = createComment()
         val commentId = comment.id
 
-        given(userRepository.findByEmail(request.email)).willReturn(user)
-        given(encoder.matches(request.password, user.password)).willReturn(true)
+        given(userRepository.getReferenceById(userDto.id)).willReturn(user)
         given(articleRepository.findById(articleId)).willReturn(Optional.of(article))
         given(commentRepository.findByIdAndArticleId(commentId, articleId)).willReturn(comment)
         willDoNothing().given(commentRepository).delete(comment)
 
         //when
-        val result = sut.delete(articleId, commentId, request)
+        val result = sut.delete(articleId, commentId, userDto)
 
         //then
-        then(userRepository).should().findByEmail(request.email)
+        then(userRepository).should().getReferenceById(user.id)
         then(articleRepository).should().findById(articleId)
         then(commentRepository).should().findByIdAndArticleId(commentId, articleId)
         then(commentRepository).should().delete(comment)
-    }
-
-    @DisplayName("존재하지 않는 유저가 댓글 삭제 요청시 예외를 반환한다.")
-    @Test
-    fun givenNonExistingUser_whenDeletingComment_thenReturnException() {
-        //given
-        val articleId = 1L
-        val commentId = 1L
-        val request = createCommentDeleteRequest()
-
-        given(userRepository.findByEmail(request.email)).willReturn(null)
-
-        //when & then
-        assertThatThrownBy { sut.delete(articleId, commentId, request) }
-            .isInstanceOf(BoardApplicationException::class.java)
-            .extracting("errorCode")
-            .isEqualTo(ErrorCode.EMAIL_NOT_FOUND)
-    }
-
-    @DisplayName("비밀 번호를 틀린 유저가 댓글 삭제 요청시 예외를 반환한다.")
-    @Test
-    fun givenWrongPassword_whenDeletingComment_thenReturnException() {
-        //given
-        val articleId = 1L
-        val commentId = 1L
-        val request = createCommentDeleteRequest(password = "wrongPassword")
-        val user = createUser()
-
-        given(userRepository.findByEmail(request.email)).willReturn(user)
-        given(encoder.matches(request.password, user.password)).willReturn(false)
-
-        //when & then
-        assertThatThrownBy { sut.delete(articleId, commentId, request) }
-            .isInstanceOf(BoardApplicationException::class.java)
-            .extracting("errorCode")
-            .isEqualTo(ErrorCode.INVALID_PASSWORD)
     }
 
     @DisplayName("존재하지 않는 게시글로 댓글 삭제 요청시 예외를 반환한다.")
@@ -334,15 +220,14 @@ class CommentServiceTest {
         //given
         val articleId = 1L
         val commentId = 1L
-        val request = createCommentDeleteRequest()
         val user = createUser()
+        val userDto = createUserDto()
 
-        given(userRepository.findByEmail(request.email)).willReturn(user)
-        given(encoder.matches(request.password, user.password)).willReturn(true)
+        given(userRepository.getReferenceById(user.id)).willReturn(user)
         given(articleRepository.findById(articleId)).willReturn(Optional.empty())
 
         //when & then
-        assertThatThrownBy { sut.delete(articleId, commentId, request) }
+        assertThatThrownBy { sut.delete(articleId, commentId, userDto) }
             .isInstanceOf(BoardApplicationException::class.java)
             .extracting("errorCode")
             .isEqualTo(ErrorCode.ARTICLE_NOT_FOUND)
@@ -353,19 +238,18 @@ class CommentServiceTest {
     fun givenNonExistingComment_whenDeletingComment_thenReturnException() {
         //given
         val commentId = 1L
-        val request = createCommentDeleteRequest()
         val user = createUser()
-        
+        val userDto = createUserDto()
+
         val article = createArticle()
         val articleId = article.id
 
-        given(userRepository.findByEmail(request.email)).willReturn(user)
-        given(encoder.matches(request.password, user.password)).willReturn(true)
+        given(userRepository.getReferenceById(userDto.id)).willReturn(user)
         given(articleRepository.findById(articleId)).willReturn(Optional.of(article))
         given(commentRepository.findByIdAndArticleId(commentId, articleId)).willReturn(null)
 
         //when & then
-        assertThatThrownBy { sut.delete(articleId, commentId, request) }
+        assertThatThrownBy { sut.delete(articleId, commentId, userDto) }
             .isInstanceOf(BoardApplicationException::class.java)
             .extracting("errorCode")
             .isEqualTo(ErrorCode.COMMENT_NOT_FOUND)
@@ -375,41 +259,46 @@ class CommentServiceTest {
     @Test
     fun givenDifferUser_whenDeletingComment_thenReturnException() {
         //given
-        val request = createCommentDeleteRequest()
+        val userDto = createUserDto()
 
         val originalAuthor = createUser(2L, "original@email.com")
         val requestUser = createUser()
 
         val article = createArticle()
         val articleId = article.id
-        
+
         val comment = createComment(user = originalAuthor)
         val commentId = comment.id
 
-        given(userRepository.findByEmail(request.email)).willReturn(requestUser)
-        given(encoder.matches(request.password, requestUser.password)).willReturn(true)
+        given(userRepository.getReferenceById(userDto.id)).willReturn(requestUser)
         given(articleRepository.findById(articleId)).willReturn(Optional.of(article))
         given(commentRepository.findByIdAndArticleId(commentId, articleId)).willReturn(comment)
 
         //then & then
-        assertThatThrownBy { sut.delete(articleId, commentId, request) }
+        assertThatThrownBy { sut.delete(articleId, commentId, userDto) }
             .isInstanceOf(BoardApplicationException::class.java)
             .extracting("errorCode")
             .isEqualTo(ErrorCode.INVALID_PERMISSION)
     }
 
     private fun createCommentRequest(
-        email: String = "email@email.com",
-        password: String = "password",
         content: String = "content"
-    ) = CommentRequest(email, password, content)
+    ) = CommentRequest(content)
 
     private fun createUser(
+        userId: Long = 1L,
+        email: String = "email@email.com",
+        username: String = "username",
+        password: String = "password",
+        role: Role = Role.USER
+    ) = User(id = userId, email = email, username = username, password = password, role = role)
+
+    private fun createUserDto(
         id: Long = 1L,
         email: String = "email@email.com",
         username: String = "username",
-        password: String = "password"
-    ) = User(id, email, username, password)
+        role: Role = Role.USER
+    ) = UserDto(id, email, username, role)
 
     private fun createArticle(
         articleId: Long = 1L,
@@ -425,8 +314,4 @@ class CommentServiceTest {
         article: Article = createArticle()
     ) = Comment(id, content, user, article)
 
-    private fun createCommentDeleteRequest(
-        email: String = "email@email.com",
-        password: String = "password"
-    ) = CommentDeleteRequest(email, password)
 }

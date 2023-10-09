@@ -9,11 +9,11 @@ import org.mockito.BDDMockito.*
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
-import project.kotlin_board.dto.request.ArticleDeleteRequest
+import project.kotlin_board.dto.UserDto
 import project.kotlin_board.dto.request.ArticleRequest
 import project.kotlin_board.exception.BoardApplicationException
 import project.kotlin_board.exception.ErrorCode
+import project.kotlin_board.model.Role
 import project.kotlin_board.model.entity.Article
 import project.kotlin_board.model.entity.User
 import project.kotlin_board.model.repository.ArticleRepository
@@ -33,8 +33,6 @@ class ArticleServiceTest {
     @Mock
     lateinit var userRepository: UserRepository
 
-    @Mock
-    lateinit var encoder: BCryptPasswordEncoder
 
     //TODO : findByIdOrNull 이 mockito 에 없어서 이 함수를 직접적으로 비교 할 수 없어 findById 를 사용해 Optional 을 이용해 테스트 작성
 
@@ -43,50 +41,19 @@ class ArticleServiceTest {
     fun givenArticleInfo_whenCreatingArticle_thenCreateArticle() {
         //given
         val request = createArticleRequest()
+        val userDto = createUserDto()
         val user = createUser()
 
-        given(userRepository.findByEmail(request.email)).willReturn(user)
-        given(encoder.matches(request.password, user.password)).willReturn(true)
+        given(userRepository.getReferenceById(userDto.id)).willReturn(user)
         given(articleRepository.save(any(Article::class.java))).willReturn(createArticle())
 
         //when
-        val result = sut.create(request)
+        val result = sut.create(request, userDto)
 
         //then
         then(articleRepository).should().save(any(Article::class.java))
         assertThat(result.title).isEqualTo(request.title)
         assertThat(result.content).isEqualTo(request.content)
-    }
-
-    @DisplayName("가입되어 있지 않은 회원이 게시글을 작성하면, 예외를 반환한다.")
-    @Test
-    fun givenUnSignUpUser_whenCreatingArticle_thenReturnException() {
-        //given
-        val request = createArticleRequest()
-
-        given(userRepository.findByEmail(request.email)).willReturn(null)
-
-        //given & then
-        assertThatThrownBy { sut.create(request) }
-            .isInstanceOf(BoardApplicationException::class.java)
-            .extracting("errorCode")
-            .isEqualTo(ErrorCode.EMAIL_NOT_FOUND)
-    }
-
-    @DisplayName("잘못된 패스워드로 게시글을 작성하면, 예외를 반환한다.")
-    @Test
-    fun givenWrongPassword_whenCreatingArticle_thenReturnException() {
-        //given
-        val request = createArticleRequest(password = "wrongPassword")
-        val user = createUser()
-
-        given(userRepository.findByEmail(request.email)).willReturn(user)
-        given(encoder.matches(request.password, user.password)).willReturn(false)
-        //when & then
-        assertThatThrownBy { sut.create(request) }
-            .isInstanceOf(BoardApplicationException::class.java)
-            .extracting("errorCode")
-            .isEqualTo(ErrorCode.INVALID_PASSWORD)
     }
 
     @DisplayName("게시글 수정 요청 - 정상 동작")
@@ -95,17 +62,17 @@ class ArticleServiceTest {
         //given
         val request = createArticleRequest()
         val user = createUser()
+        val userDto = createUserDto()
         val originalArticle = createArticle(title = "Original Title", content = "Original Content")
         val updatedArticle = createArticle()
         val articleId = originalArticle.id
 
-        given(userRepository.findByEmail(request.email)).willReturn(user)
-        given(encoder.matches(request.password, user.password)).willReturn(true)
+        given(userRepository.getReferenceById(userDto.id)).willReturn(user)
         given(articleRepository.findById(articleId)).willReturn(Optional.of(originalArticle))
         given(articleRepository.save(any(Article::class.java))).willReturn(updatedArticle)
 
         //when
-        val result = sut.update(articleId, request)
+        val result = sut.update(articleId, request, userDto)
 
         //then
         then(articleRepository).should().save(any(Article::class.java))
@@ -119,14 +86,14 @@ class ArticleServiceTest {
         //given
         val request = createArticleRequest()
         val user = createUser()
+        val userDto = createUserDto()
         val articleId = 1L
 
-        given(userRepository.findByEmail(request.email)).willReturn(user)
-        given(encoder.matches(request.password, user.password)).willReturn(true)
+        given(userRepository.getReferenceById(userDto.id)).willReturn(user)
         given(articleRepository.findById(articleId)).willReturn(Optional.empty())
 
         //when & then
-        assertThatThrownBy { sut.update(articleId, request) }
+        assertThatThrownBy { sut.update(articleId, request, userDto) }
             .isInstanceOf(BoardApplicationException::class.java)
             .extracting("errorCode")
             .isEqualTo(ErrorCode.ARTICLE_NOT_FOUND)
@@ -140,16 +107,16 @@ class ArticleServiceTest {
 
         val originalAuthor = createUser(2L, "original@email.com")
         val requestUser = createUser()
+        val userDto = createUserDto()
 
         val article = createArticle(user = originalAuthor)
         val articleId = article.id
 
-        given(userRepository.findByEmail(request.email)).willReturn(requestUser)
-        given(encoder.matches(request.password, requestUser.password)).willReturn(true)
+        given(userRepository.getReferenceById(userDto.id)).willReturn(requestUser)
         given(articleRepository.findById(articleId)).willReturn(Optional.of(article))
 
         //when & then
-        assertThatThrownBy { sut.update(articleId, request) }
+        assertThatThrownBy { sut.update(articleId, request, userDto) }
             .isInstanceOf(BoardApplicationException::class.java)
             .extracting("errorCode")
             .isEqualTo(ErrorCode.INVALID_PERMISSION)
@@ -159,18 +126,17 @@ class ArticleServiceTest {
     @Test
     fun givenArticle_whenDeletingArticle_thenDeleteArticle() {
         //given
-        val request = createDeleteArticle()
+        val userDto = createUserDto()
         val user = createUser()
         val article = createArticle()
         val articleId = article.id
 
-        given(userRepository.findByEmail(request.email)).willReturn(user)
-        given(encoder.matches(request.password, user.password)).willReturn(true)
+        given(userRepository.getReferenceById(userDto.id)).willReturn(user)
         given(articleRepository.findById(articleId)).willReturn(Optional.of(article))
         willDoNothing().given(articleRepository).delete(article)
 
         //when
-        sut.delete(articleId, request)
+        sut.delete(articleId, userDto)
 
         //then
         then(articleRepository).should().delete(article)
@@ -180,16 +146,15 @@ class ArticleServiceTest {
     @Test
     fun givenNonExistingArticle_whenDeletingArticle_thenReturnException() {
         //given
-        val request = createDeleteArticle()
+        val userDto = createUserDto()
         val user = createUser()
         val articleId = 1L
 
-        given(userRepository.findByEmail(request.email)).willReturn(user)
-        given(encoder.matches(request.password, user.password)).willReturn(true)
+        given(userRepository.getReferenceById(userDto.id)).willReturn(user)
         given(articleRepository.findById(articleId)).willReturn(Optional.empty())
 
         //when & then
-        assertThatThrownBy { sut.delete(articleId, request) }
+        assertThatThrownBy { sut.delete(articleId, userDto) }
             .isInstanceOf(BoardApplicationException::class.java)
             .extracting("errorCode")
             .isEqualTo(ErrorCode.ARTICLE_NOT_FOUND)
@@ -199,7 +164,7 @@ class ArticleServiceTest {
     @Test
     fun givenDifferUser_whenDeletingArticle_thenReturnException() {
         //given
-        val request = createDeleteArticle()
+        val userDto = createUserDto()
 
         val originalAuthor = createUser(2L, "original@email.com")
         val requestUser = createUser()
@@ -207,12 +172,11 @@ class ArticleServiceTest {
         val article = createArticle(originalAuthor)
         val articleId = article.id
 
-        given(userRepository.findByEmail(request.email)).willReturn(requestUser)
-        given(encoder.matches(request.password, requestUser.password)).willReturn(true)
+        given(userRepository.getReferenceById(userDto.id)).willReturn(requestUser)
         given(articleRepository.findById(articleId)).willReturn(Optional.of(article))
 
         //when & then
-        assertThatThrownBy { sut.delete(articleId, request) }
+        assertThatThrownBy { sut.delete(articleId, userDto) }
             .isInstanceOf(BoardApplicationException::class.java)
             .extracting("errorCode")
             .isEqualTo(ErrorCode.INVALID_PERMISSION)
@@ -228,19 +192,21 @@ class ArticleServiceTest {
         userId: Long = 1L,
         email: String = "email@email.com",
         username: String = "username",
-        password: String = "password"
-    ) = User(userId, email, username, password)
+        password: String = "password",
+        role: Role = Role.USER
+    ) = User(id = userId, email = email, username = username, password = password, role = role)
+
+    private fun createUserDto(
+        id: Long = 1L,
+        email: String = "email@email.com",
+        username: String = "username",
+        role: Role = Role.USER
+    ) = UserDto(id, email, username, role)
 
     private fun createArticleRequest(
-        email: String = "email@email.com",
-        password: String = "password",
         title: String = "title",
         content: String = "content"
-    ) = ArticleRequest(email, password, title, content)
+    ) = ArticleRequest(title, content)
 
-    private fun createDeleteArticle(
-        email: String = "email@email.com",
-        password: String = "password"
-    ) = ArticleDeleteRequest(email, password)
 
 }
