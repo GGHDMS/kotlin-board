@@ -1,16 +1,14 @@
 package project.kotlin_board.service
 
 import org.springframework.data.repository.findByIdOrNull
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import project.kotlin_board.dto.request.ArticleDeleteRequest
+import project.kotlin_board.dto.UserDto
 import project.kotlin_board.dto.request.ArticleRequest
 import project.kotlin_board.dto.response.ArticleResponse
 import project.kotlin_board.exception.BoardApplicationException
 import project.kotlin_board.exception.ErrorCode
 import project.kotlin_board.model.entity.Article
-import project.kotlin_board.model.entity.User
 import project.kotlin_board.model.repository.ArticleRepository
 import project.kotlin_board.model.repository.UserRepository
 
@@ -18,13 +16,11 @@ import project.kotlin_board.model.repository.UserRepository
 @Transactional
 class ArticleService(
     private val articleRepository: ArticleRepository,
-    private val userRepository: UserRepository,
-    private val encoder: BCryptPasswordEncoder
+    private val userRepository: UserRepository
 ) {
 
-    fun create(request: ArticleRequest): ArticleResponse {
-        val user = validateUserByEmail(request.email)
-        validateUserPassword(request.password, user.password)
+    fun create(request: ArticleRequest, userDto: UserDto): ArticleResponse {
+        val user = userRepository.getReferenceById(userDto.id)
 
         // 생성
         val article = articleRepository.save(
@@ -38,10 +34,8 @@ class ArticleService(
         )
     }
 
-    fun update(articleId: Long, request: ArticleRequest): ArticleResponse {
-        val user = validateUserByEmail(request.email)
-        validateUserPassword(request.password, user.password)
-
+    fun update(articleId: Long, request: ArticleRequest, userDto: UserDto): ArticleResponse {
+        val user = userRepository.getReferenceById(userDto.id)
         val article = validateArticleById(articleId)
 
         if (user != article.user) {
@@ -53,14 +47,15 @@ class ArticleService(
         val savedArticle = articleRepository.save(article)
 
         return ArticleResponse(
-            id = savedArticle.id, email = savedArticle.user.email, title = savedArticle.title, content = savedArticle.content
+            id = savedArticle.id,
+            email = savedArticle.user.email,
+            title = savedArticle.title,
+            content = savedArticle.content
         )
     }
 
-    fun delete(articleId: Long, request: ArticleDeleteRequest) {
-        val user = validateUserByEmail(request.email)
-        validateUserPassword(request.password, user.password)
-
+    fun delete(articleId: Long, userDto: UserDto) {
+        val user = userRepository.getReferenceById(userDto.id)
         val article = validateArticleById(articleId)
 
         if (user != article.user) {
@@ -68,16 +63,6 @@ class ArticleService(
         }
 
         articleRepository.delete(article)
-    }
-
-    private fun validateUserByEmail(email: String): User {
-        return userRepository.findByEmail(email) ?: throw BoardApplicationException(ErrorCode.EMAIL_NOT_FOUND)
-    }
-
-    private fun validateUserPassword(requestPassword: String, storedPassword: String) {
-        if (!encoder.matches(requestPassword, storedPassword)) {
-            throw BoardApplicationException(ErrorCode.INVALID_PASSWORD)
-        }
     }
 
     private fun validateArticleById(articleId: Long): Article {

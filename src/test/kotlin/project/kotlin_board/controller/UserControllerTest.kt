@@ -9,26 +9,27 @@ import org.junit.jupiter.params.provider.MethodSource
 import org.mockito.BDDMockito.given
 import org.mockito.BDDMockito.willDoNothing
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
-import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
-import project.kotlin_board.config.SecurityConfig
-import project.kotlin_board.dto.request.DeleteUserRequest
+import project.kotlin_board.annotation.WithCustomMockUser
+import project.kotlin_board.dto.UserDto
 import project.kotlin_board.dto.request.SignUpRequest
 import project.kotlin_board.dto.response.UserResponse
 import project.kotlin_board.exception.BoardApplicationException
 import project.kotlin_board.exception.ErrorCode
+import project.kotlin_board.model.Role
 import project.kotlin_board.service.UserService
 
 @DisplayName("유저 컨트롤러 테스트")
-@Import(SecurityConfig::class)
-@WebMvcTest(UserController::class)
+@AutoConfigureMockMvc
+@SpringBootTest
 class UserControllerTest {
     @Autowired
     private lateinit var mvc: MockMvc
@@ -50,7 +51,7 @@ class UserControllerTest {
 
         //when & then
         mvc.perform(
-            post("/api/users")
+            post("/api/users/sign-up")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsBytes(request))
         )
@@ -67,7 +68,7 @@ class UserControllerTest {
         given(userService.signUp(request)).willThrow(BoardApplicationException(ErrorCode.DUPLICATED_EMAIL))
 
         mvc.perform(
-            post("/api/users")
+            post("/api/users/sign-up")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsBytes(request))
         ).andExpect(status().isConflict())
@@ -81,7 +82,7 @@ class UserControllerTest {
 
         //when & then
         mvc.perform(
-            post("/api/users")
+            post("/api/users/sign-up")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsBytes(request))
         )
@@ -91,8 +92,9 @@ class UserControllerTest {
 
     @DisplayName("존재하는 유저 삭제 요청 - 정상 호출")
     @Test
+    @WithCustomMockUser
     fun givenExistingUserInfo_whenDeletingUser_thenDeleteUser() {
-        val request = createDeleteUserRequest()
+        val request = createUserDto()
         willDoNothing().given(userService).deleteUser(request)
 
         mvc.perform(
@@ -105,29 +107,32 @@ class UserControllerTest {
     companion object {
         @JvmStatic
         fun wrongSignupProvider() = listOf(
-            Arguments.of(SignUpRequest("","password", "username")),
-            Arguments.of(SignUpRequest(" ", "password", "username")),
-            Arguments.of(SignUpRequest("email@email.com", "", "username")),
-            Arguments.of(SignUpRequest("email@email.com", " ", "username")),
-            Arguments.of(SignUpRequest("email", "password", "username")),
-            Arguments.of(SignUpRequest("email@", "password", "username"))
+            Arguments.of(SignUpRequest("","password", "username", Role.USER)),
+            Arguments.of(SignUpRequest(" ", "password", "username", Role.USER)),
+            Arguments.of(SignUpRequest("email@email.com", "", "username", Role.USER)),
+            Arguments.of(SignUpRequest("email@email.com", " ", "username", Role.USER)),
+            Arguments.of(SignUpRequest("email", "password", "username", Role.USER)),
+            Arguments.of(SignUpRequest("email@", "password", "username", Role.USER))
         )
     }
 
     private fun createSignupRequest(
         email: String = "email@email.com",
         password: String = "password",
-        username: String = "username"
-    ) = SignUpRequest(email, password, username)
-
-    private fun createDeleteUserRequest(
-        email: String = "email@email.com",
-        password: String = "password"
-    ) = DeleteUserRequest(email, password)
+        username: String = "username",
+        role: Role = Role.USER
+    ) = SignUpRequest(email, password, username, Role.USER)
 
     private fun createUserResponse(
         email: String = "email@email.com",
-        username: String = "username"
-    ) = UserResponse(email, username)
+        username: String = "username",
+        role: Role = Role.USER
+    ) = UserResponse(email, username, Role.USER)
 
+    private fun createUserDto(
+        id: Long = 1L,
+        email: String = "email@email.com",
+        username : String = "username",
+        role : Role = Role.USER
+    ) = UserDto(id, email, username, role)
 }

@@ -1,5 +1,6 @@
 package project.kotlin_board.dto.request
 
+import project.kotlin_board.model.Role
 import javax.validation.constraints.Email
 import javax.validation.constraints.NotBlank
 
@@ -11,5 +12,7 @@ data class SignUpRequest(
     @field:NotBlank(message = "Password cannot be blank")
     val password: String,
 
-    val username: String
+    val username: String,
+
+    val role : Role
 )
