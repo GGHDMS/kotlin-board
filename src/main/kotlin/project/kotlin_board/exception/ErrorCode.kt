@@ -1,10 +1,10 @@
 package project.kotlin_board.exception
-import org.springframework.http.HttpStatus
 
+import org.springframework.http.HttpStatus
 
 enum class ErrorCode(
     val status: HttpStatus,
-    val message: String
+    val message: String,
 ) {
     DUPLICATED_EMAIL(HttpStatus.CONFLICT, "Email is duplicated"),
     EMAIL_NOT_FOUND(HttpStatus.NOT_FOUND, "Email not founded"),
@@ -17,4 +17,3 @@ enum class ErrorCode(
 
     INVALID_PERMISSION(HttpStatus.UNAUTHORIZED, "Permission is invalid"),
 }
-

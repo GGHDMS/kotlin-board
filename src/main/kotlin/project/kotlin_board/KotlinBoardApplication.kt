@@ -9,5 +9,5 @@ import org.springframework.boot.runApplication
 class KotlinBoardApplication
 
 fun main(args: Array<String>) {
-	runApplication<KotlinBoardApplication>(*args)
+    runApplication<KotlinBoardApplication>(*args)
 }

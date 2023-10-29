@@ -7,7 +7,7 @@ import project.kotlin_board.security.handler.LoginUserArgumentResolver
 
 @Configuration
 class WebMvcConfig(
-    private val loginUserArgumentResolver: LoginUserArgumentResolver
+    private val loginUserArgumentResolver: LoginUserArgumentResolver,
 ) : WebMvcConfigurer {
 
     override fun addArgumentResolvers(resolvers: MutableList<HandlerMethodArgumentResolver>) {

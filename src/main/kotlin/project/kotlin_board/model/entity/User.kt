@@ -8,8 +8,8 @@ import javax.persistence.*
 @Table(
     name = "users",
     indexes = [
-        Index(name = "idx_email", columnList = "email", unique = true)
-    ]
+        Index(name = "idx_email", columnList = "email", unique = true),
+    ],
 )
 class User(
     @Id
@@ -37,7 +37,7 @@ class User(
     var articles: MutableList<Article> = mutableListOf(),
 
     @OneToMany(mappedBy = "user", cascade = [CascadeType.REMOVE])
-    var comments: MutableList<Comment> = mutableListOf()
+    var comments: MutableList<Comment> = mutableListOf(),
 
 ) : BaseTimeEntity() {
 
@@ -69,4 +69,3 @@ class User(
         return if (id == 0L) super.hashCode() else id.hashCode()
     }
 }
-

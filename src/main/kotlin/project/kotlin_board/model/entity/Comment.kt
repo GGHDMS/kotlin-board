@@ -19,7 +19,7 @@ class Comment(
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "article_id")
-    var article: Article
+    var article: Article,
 ) : BaseTimeEntity() {
 
     fun updateContent(content: String) {

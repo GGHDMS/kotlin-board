@@ -14,13 +14,13 @@ private const val AUTHORIZATION_SCHEMA = "Bearer"
 
 class JwtFilter(
     private val jwtProvider: JwtProvider,
-    private val authenticationEntryPoint: AuthenticationEntryPoint
+    private val authenticationEntryPoint: AuthenticationEntryPoint,
 ) : OncePerRequestFilter() {
 
     override fun doFilterInternal(
         request: HttpServletRequest,
         response: HttpServletResponse,
-        filterChain: FilterChain
+        filterChain: FilterChain,
     ) {
         val authorizationHeader = request.getHeader(AUTHORIZATION_HEADER)
 
@@ -33,7 +33,7 @@ class JwtFilter(
             val token = extractAccessTokenFromHeader(authorizationHeader)
             val authentication = jwtProvider.authenticate(token)
             SecurityContextHolder.getContext().authentication = authentication
-        } catch (exception : AuthenticateException) {
+        } catch (exception: AuthenticateException) {
             authenticationEntryPoint.commence(request, response, exception)
         }
 

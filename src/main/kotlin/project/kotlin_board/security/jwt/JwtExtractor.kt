@@ -6,7 +6,7 @@ import project.kotlin_board.security.exception.AuthenticateException
 
 @Component
 class JwtExtractor(
-    private val jwtProperties: JwtProperties
+    private val jwtProperties: JwtProperties,
 ) {
 
     fun extractEmail(token: String): String {
