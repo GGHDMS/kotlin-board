@@ -14,7 +14,7 @@ import project.kotlin_board.security.jwt.JwtProvider
 @EnableWebSecurity
 class SecurityConfig(
     private val jwtProvider: JwtProvider,
-    private val authenticationEntryPoint: AuthenticationEntryPoint
+    private val authenticationEntryPoint: AuthenticationEntryPoint,
 ) {
 
     @Bean
@@ -26,7 +26,7 @@ class SecurityConfig(
         .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
         .authorizeHttpRequests {
             it
-                .antMatchers("/api/users/sign-up", "/api/users/sign-in").permitAll()
+                .antMatchers("/api/users/sign-up", "/api/users/sign-in", "/v3/**", "/swagger-ui/**").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .apply(JwtSecurityConfig(jwtProvider, authenticationEntryPoint))

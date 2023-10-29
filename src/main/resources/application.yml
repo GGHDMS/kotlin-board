@@ -6,7 +6,7 @@ spring:
 
   jpa:
     defer-datasource-initialization: true
-    hibernate.ddl-auto: create
+    hibernate.ddl-auto: update
     show-sql: true
     open-in-view: false
     properties:
@@ -18,3 +18,13 @@ jwt:
   secret-key: ${SECRET_KEY}
   access-exp-time: 3600000   # 1시간
   refresh-exp-time: 604800000   # 7일
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    tagsSorter: alpha
+    operations-sorter: alpha
+    display-request-duration: true
+  version: '1.0'
