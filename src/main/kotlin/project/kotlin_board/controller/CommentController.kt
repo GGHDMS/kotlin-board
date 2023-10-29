@@ -1,5 +1,6 @@
 package project.kotlin_board.controller
 
+import io.swagger.v3.oas.annotations.Parameter
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 import project.kotlin_board.dto.UserDto
@@ -12,15 +13,16 @@ import javax.validation.Valid
 @RestController
 @RequestMapping("/api/articles/{articleId}/comments")
 class CommentController(
-    private val commentService: CommentService
+    private val commentService: CommentService,
 ) {
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
     fun create(
         @PathVariable articleId: Long,
-        @Valid @RequestBody commentRequest: CommentRequest,
-        @LoginUser userDto: UserDto
+        @Valid @RequestBody
+        commentRequest: CommentRequest,
+        @Parameter(hidden = true) @LoginUser userDto: UserDto,
     ): CommentResponse {
         return commentService.create(articleId, commentRequest, userDto)
     }
@@ -29,8 +31,9 @@ class CommentController(
     fun update(
         @PathVariable articleId: Long,
         @PathVariable commentId: Long,
-        @Valid @RequestBody commentRequest: CommentRequest,
-        @LoginUser userDto: UserDto
+        @Valid @RequestBody
+        commentRequest: CommentRequest,
+        @Parameter(hidden = true) @LoginUser userDto: UserDto,
     ): CommentResponse {
         return commentService.update(articleId, commentId, commentRequest, userDto)
     }
@@ -39,9 +42,8 @@ class CommentController(
     fun delete(
         @PathVariable articleId: Long,
         @PathVariable commentId: Long,
-        @LoginUser userDto: UserDto
+        @Parameter(hidden = true) @LoginUser userDto: UserDto,
     ) {
         return commentService.delete(articleId, commentId, userDto)
     }
-
 }

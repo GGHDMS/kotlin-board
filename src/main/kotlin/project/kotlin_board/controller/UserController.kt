@@ -1,5 +1,6 @@
 package project.kotlin_board.controller
 
+import io.swagger.v3.oas.annotations.Parameter
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 import project.kotlin_board.dto.UserDto
@@ -15,31 +16,38 @@ import javax.validation.Valid
 @RestController
 @RequestMapping("/api/users")
 class UserController(
-    private val userService: UserService
+    private val userService: UserService,
 ) {
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/sign-up")
-    fun signUp(@Valid @RequestBody signUpRequest: SignUpRequest): UserResponse {
+    fun signUp(
+        @Valid @RequestBody
+        signUpRequest: SignUpRequest,
+    ): UserResponse {
         return userService.signUp(signUpRequest)
     }
 
     @PostMapping("/sign-in")
-    fun signIn(@Valid @RequestBody signInRequest: SignInRequest): SignInResponse {
+    fun signIn(
+        @Valid @RequestBody
+        signInRequest: SignInRequest,
+    ): SignInResponse {
         return userService.signIn(signInRequest)
     }
 
     @PostMapping("/refresh")
     fun refreshToken(
         @RequestHeader("Authorization") authorization: String,
-        @LoginUser userDto: UserDto
+        @Parameter(hidden = true) @LoginUser userDto: UserDto,
     ): RefreshResponse {
         return userService.refreshToken(authorization, userDto)
     }
 
     @DeleteMapping
-    fun deleteUser(@LoginUser userDto: UserDto) {
+    fun deleteUser(
+        @Parameter(hidden = true) @LoginUser userDto: UserDto,
+    ) {
         userService.deleteUser(userDto)
     }
-
 }

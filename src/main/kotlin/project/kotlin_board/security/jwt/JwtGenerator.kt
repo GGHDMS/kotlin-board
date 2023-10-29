@@ -8,7 +8,7 @@ import java.util.*
 
 @Component
 class JwtGenerator(
-    private val jwtProperties: JwtProperties
+    private val jwtProperties: JwtProperties,
 ) {
 
     fun generateAccessToken(email: String, role: Role): String {

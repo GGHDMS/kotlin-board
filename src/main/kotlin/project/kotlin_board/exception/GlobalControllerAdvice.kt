@@ -23,7 +23,7 @@ class GlobalControllerAdvice {
             time = LocalDateTime.now(),
             status = e.errorCode.status,
             message = e.message ?: "Unexpected error",
-            requestURI = request.getDescription(false)
+            requestURI = request.getDescription(false),
         )
         return ResponseEntity.status(e.errorCode.status).body(errorResponse)
     }
@@ -31,7 +31,7 @@ class GlobalControllerAdvice {
     @ExceptionHandler(MethodArgumentNotValidException::class)
     fun handleValidationExceptions(
         e: MethodArgumentNotValidException,
-        request: WebRequest
+        request: WebRequest,
     ): ResponseEntity<ErrorResponse> {
         log.error("Validation error occurs {}", e.toString())
 
@@ -39,7 +39,7 @@ class GlobalControllerAdvice {
             time = LocalDateTime.now(),
             status = HttpStatus.BAD_REQUEST,
             message = e.bindingResult.fieldErrors.firstOrNull()?.defaultMessage ?: "Validation error",
-            requestURI = request.getDescription(false)
+            requestURI = request.getDescription(false),
         )
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse)
@@ -48,7 +48,7 @@ class GlobalControllerAdvice {
     @ExceptionHandler(MissingKotlinParameterException::class)
     fun handleMissingKotlinParameter(
         e: MissingKotlinParameterException,
-        request : WebRequest
+        request: WebRequest,
     ): ResponseEntity<ErrorResponse> {
         log.error("Missing parameter error occurs {}", e.toString())
 
@@ -56,10 +56,9 @@ class GlobalControllerAdvice {
             time = LocalDateTime.now(),
             status = HttpStatus.BAD_REQUEST,
             message = "Missing parameter: ${e.parameter.name}",
-            requestURI = request.getDescription(false)
+            requestURI = request.getDescription(false),
         )
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse)
     }
 }
-

@@ -23,12 +23,14 @@ class LoginUserArgumentResolver : HandlerMethodArgumentResolver {
         parameter: MethodParameter,
         mavContainer: ModelAndViewContainer?,
         webRequest: NativeWebRequest,
-        binderFactory: WebDataBinderFactory?
+        binderFactory: WebDataBinderFactory?,
     ): Any? {
         with(SecurityContextHolder.getContext()) {
             if (authentication.principal != null && authentication.principal is UserDto) {
                 return authentication.principal as UserDto
-            }else throw RuntimeException("Authentication 의 principal 객체가 UserDto 타입이 아닙니다.")
+            } else {
+                throw RuntimeException("Authentication 의 principal 객체가 UserDto 타입이 아닙니다.")
+            }
         }
     }
 }

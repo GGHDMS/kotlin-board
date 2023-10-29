@@ -21,13 +21,13 @@ class Article(
     var user: User,
 
     @OneToMany(mappedBy = "article", cascade = [CascadeType.REMOVE])
-    var comments: MutableList<Comment> = mutableListOf()
+    var comments: MutableList<Comment> = mutableListOf(),
 
 ) : BaseTimeEntity() {
 
     fun addComment(comment: Comment) {
         comments.add(comment)
-        comment.article= this
+        comment.article = this
     }
 
     fun updateTitleAndContent(title: String, content: String) {
@@ -49,5 +49,3 @@ class Article(
         return if (id == 0L) super.hashCode() else id.hashCode()
     }
 }
-
-

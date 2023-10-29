@@ -10,10 +10,13 @@ import project.kotlin_board.security.jwt.JwtProvider
 
 class JwtSecurityConfig(
     private val jwtProvider: JwtProvider,
-    private val authenticationEntryPoint: AuthenticationEntryPoint
+    private val authenticationEntryPoint: AuthenticationEntryPoint,
 ) : SecurityConfigurerAdapter<DefaultSecurityFilterChain, HttpSecurity>() {
 
     override fun configure(http: HttpSecurity) {
-        http.addFilterBefore(JwtFilter(jwtProvider, authenticationEntryPoint), UsernamePasswordAuthenticationFilter::class.java)
+        http.addFilterBefore(
+            JwtFilter(jwtProvider, authenticationEntryPoint),
+            UsernamePasswordAuthenticationFilter::class.java,
+        )
     }
 }

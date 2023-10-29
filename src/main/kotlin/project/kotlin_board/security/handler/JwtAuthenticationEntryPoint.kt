@@ -14,17 +14,17 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 @Component
-class JwtAuthenticationEntryPoint: AuthenticationEntryPoint {
+class JwtAuthenticationEntryPoint : AuthenticationEntryPoint {
     override fun commence(
         request: HttpServletRequest,
         response: HttpServletResponse,
-        ex: AuthenticationException
+        ex: AuthenticationException,
     ) {
         val errorResponse = ErrorResponse(
             time = LocalDateTime.now(),
             status = HttpStatus.UNAUTHORIZED,
             message = ex.message!!,
-            requestURI = request.requestURI.toString()
+            requestURI = request.requestURI.toString(),
         )
 
         with(response) {

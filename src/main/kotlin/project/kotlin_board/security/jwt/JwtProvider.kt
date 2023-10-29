@@ -10,7 +10,7 @@ import project.kotlin_board.model.repository.UserRepository
 @Component
 class JwtProvider(
     private val userRepository: UserRepository,
-    private val jwtExtractor: JwtExtractor
+    private val jwtExtractor: JwtExtractor,
 ) {
 
     fun authenticate(token: String): Authentication {
@@ -23,8 +23,10 @@ class JwtProvider(
                 id = user.id,
                 email = user.email,
                 username = user.username,
-                role = user.role
-            ), "", listOf(SimpleGrantedAuthority(user.role.name))
+                role = user.role,
+            ),
+            "",
+            listOf(SimpleGrantedAuthority(user.role.name)),
         )
     }
 }

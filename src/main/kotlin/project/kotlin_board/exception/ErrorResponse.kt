@@ -8,10 +8,10 @@ data class ErrorResponse(
     @field:JsonFormat(
         shape = JsonFormat.Shape.STRING,
         pattern = "yyyy-MM-dd HH:mm:ss",
-        locale = "Asia/Seoul"
+        locale = "Asia/Seoul",
     )
     val time: LocalDateTime,
     val status: HttpStatus,
     val message: String?,
-    val requestURI: String
+    val requestURI: String,
 )

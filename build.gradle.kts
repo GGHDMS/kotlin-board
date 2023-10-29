@@ -28,6 +28,9 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 	runtimeOnly("com.mysql:mysql-connector-j")
 
+    // Swagger
+    implementation("org.springdoc:springdoc-openapi-ui:1.6.9")
+
 	// JWT
 	implementation("io.jsonwebtoken:jjwt:0.9.1")
 
