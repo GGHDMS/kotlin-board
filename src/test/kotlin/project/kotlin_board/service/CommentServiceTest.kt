@@ -42,7 +42,7 @@ class CommentServiceTest {
     @DisplayName("댓글 생성 - 정상 요청")
     @Test
     fun givenCommentInfo_whenCreatingComment_thenCreateComment() {
-        //given
+        // given
         val request = createCommentRequest()
         val user = createUser()
         val userDto = createUserDto()
@@ -54,10 +54,10 @@ class CommentServiceTest {
         given(articleRepository.findById(articleId)).willReturn(Optional.of(article))
         given(commentRepository.save(any(Comment::class.java))).willReturn(createComment())
 
-        //when
+        // when
         val result = sut.create(articleId, request, userDto)
 
-        //then
+        // then
         then(userRepository).should().getReferenceById(userDto.id)
         then(articleRepository).should().findById(articleId)
         then(commentRepository).should().save(any(Comment::class.java))
@@ -68,7 +68,7 @@ class CommentServiceTest {
     @DisplayName("존재하지 않는 게시글로 댓글 생성 요청시 예외를 반환한다.")
     @Test
     fun givenNonExistingArticle_whenCreatingComment_thenReturnException() {
-        //given
+        // given
         val articleId = 1L
         val request = createCommentRequest()
         val user = createUser()
@@ -77,7 +77,7 @@ class CommentServiceTest {
         given(userRepository.getReferenceById(userDto.id)).willReturn(user)
         given(articleRepository.findById(articleId)).willReturn(Optional.empty())
 
-        //when & then
+        // when & then
         assertThatThrownBy { sut.create(articleId, request, userDto) }
             .isInstanceOf(BoardApplicationException::class.java)
             .extracting("errorCode")
@@ -87,7 +87,7 @@ class CommentServiceTest {
     @DisplayName("댓글 수정 - 정상 요청")
     @Test
     fun givenCommentInfo_whenUpdatingComment_thenUpdateComment() {
-        //given
+        // given
         val request = createCommentRequest()
         val user = createUser()
         val userDto = createUserDto()
@@ -104,10 +104,10 @@ class CommentServiceTest {
         given(commentRepository.findByIdAndArticleId(commentId, articleId)).willReturn(originalComment)
         given(commentRepository.save(any(Comment::class.java))).willReturn(updatedComment)
 
-        //when
+        // when
         val result = sut.update(articleId, commentId, request, userDto)
 
-        //then
+        // then
         then(userRepository).should().getReferenceById(userDto.id)
         then(articleRepository).should().findById(articleId)
         then(commentRepository).should().findByIdAndArticleId(commentId, articleId)
@@ -119,7 +119,7 @@ class CommentServiceTest {
     @DisplayName("존재 하지 않는 게시글로 댓글 수정 요청시 예외를 반환한다.")
     @Test
     fun givenNonExistingArticle_whenUpdatingComment_thenReturnException() {
-        //given
+        // given
         val articleId = 1L
         val commentId = 1L
         val request = createCommentRequest()
@@ -129,7 +129,7 @@ class CommentServiceTest {
         given(userRepository.getReferenceById(userDto.id)).willReturn(user)
         given(articleRepository.findById(articleId)).willReturn(Optional.empty())
 
-        //when & then
+        // when & then
         assertThatThrownBy { sut.update(articleId, commentId, request, userDto) }
             .isInstanceOf(BoardApplicationException::class.java)
             .extracting("errorCode")
@@ -139,7 +139,7 @@ class CommentServiceTest {
     @DisplayName("존재 하지 않는 댓글로 수정 요청시 예외를 반환한다.")
     @Test
     fun givenNonExistingComment_whenUpdatingComment_thenReturnException() {
-        //given
+        // given
         val commentId = 1L
         val request = createCommentRequest()
         val user = createUser()
@@ -152,7 +152,7 @@ class CommentServiceTest {
         given(articleRepository.findById(articleId)).willReturn(Optional.of(article))
         given(commentRepository.findByIdAndArticleId(commentId, articleId)).willReturn(null)
 
-        //when & then
+        // when & then
         assertThatThrownBy { sut.update(articleId, commentId, request, userDto) }
             .isInstanceOf(BoardApplicationException::class.java)
             .extracting("errorCode")
@@ -162,7 +162,7 @@ class CommentServiceTest {
     @DisplayName("작성자가 아닌 유저가 수정 요청하면, 예외를 반환한다.")
     @Test
     fun givenDifferUser_whenUpdatingComment_thenReturnException() {
-        //given
+        // given
         val request = createCommentRequest()
 
         val originalAuthor = createUser(userId = 2L, email = "original@email.com")
@@ -179,7 +179,7 @@ class CommentServiceTest {
         given(articleRepository.findById(articleId)).willReturn(Optional.of(article))
         given(commentRepository.findByIdAndArticleId(commentId, articleId)).willReturn(comment)
 
-        //then & then
+        // then & then
         assertThatThrownBy { sut.update(articleId, commentId, request, userDto) }
             .isInstanceOf(BoardApplicationException::class.java)
             .extracting("errorCode")
@@ -189,7 +189,7 @@ class CommentServiceTest {
     @DisplayName("댓글 삭제 요청 - 정상 호출")
     @Test
     fun givenComment_whenDeletingComment_thenDeleteComment() {
-        //given
+        // given
         val user = createUser()
         val userDto = createUserDto()
 
@@ -204,10 +204,10 @@ class CommentServiceTest {
         given(commentRepository.findByIdAndArticleId(commentId, articleId)).willReturn(comment)
         willDoNothing().given(commentRepository).delete(comment)
 
-        //when
+        // when
         val result = sut.delete(articleId, commentId, userDto)
 
-        //then
+        // then
         then(userRepository).should().getReferenceById(user.id)
         then(articleRepository).should().findById(articleId)
         then(commentRepository).should().findByIdAndArticleId(commentId, articleId)
@@ -217,7 +217,7 @@ class CommentServiceTest {
     @DisplayName("존재하지 않는 게시글로 댓글 삭제 요청시 예외를 반환한다.")
     @Test
     fun givenNonExistingArticle_whenDeletingComment_thenReturnException() {
-        //given
+        // given
         val articleId = 1L
         val commentId = 1L
         val user = createUser()
@@ -226,7 +226,7 @@ class CommentServiceTest {
         given(userRepository.getReferenceById(user.id)).willReturn(user)
         given(articleRepository.findById(articleId)).willReturn(Optional.empty())
 
-        //when & then
+        // when & then
         assertThatThrownBy { sut.delete(articleId, commentId, userDto) }
             .isInstanceOf(BoardApplicationException::class.java)
             .extracting("errorCode")
@@ -236,7 +236,7 @@ class CommentServiceTest {
     @DisplayName("존재하지 않는 댓글을 삭제 요청시 예외를 반환한다.")
     @Test
     fun givenNonExistingComment_whenDeletingComment_thenReturnException() {
-        //given
+        // given
         val commentId = 1L
         val user = createUser()
         val userDto = createUserDto()
@@ -248,7 +248,7 @@ class CommentServiceTest {
         given(articleRepository.findById(articleId)).willReturn(Optional.of(article))
         given(commentRepository.findByIdAndArticleId(commentId, articleId)).willReturn(null)
 
-        //when & then
+        // when & then
         assertThatThrownBy { sut.delete(articleId, commentId, userDto) }
             .isInstanceOf(BoardApplicationException::class.java)
             .extracting("errorCode")
@@ -258,7 +258,7 @@ class CommentServiceTest {
     @DisplayName("작성자가 아닌 유저가 댓글 삭제 요청시 예외를 반환한다.")
     @Test
     fun givenDifferUser_whenDeletingComment_thenReturnException() {
-        //given
+        // given
         val userDto = createUserDto()
 
         val originalAuthor = createUser(2L, "original@email.com")
@@ -274,7 +274,7 @@ class CommentServiceTest {
         given(articleRepository.findById(articleId)).willReturn(Optional.of(article))
         given(commentRepository.findByIdAndArticleId(commentId, articleId)).willReturn(comment)
 
-        //then & then
+        // then & then
         assertThatThrownBy { sut.delete(articleId, commentId, userDto) }
             .isInstanceOf(BoardApplicationException::class.java)
             .extracting("errorCode")
@@ -282,7 +282,7 @@ class CommentServiceTest {
     }
 
     private fun createCommentRequest(
-        content: String = "content"
+        content: String = "content",
     ) = CommentRequest(content)
 
     private fun createUser(
@@ -290,28 +290,27 @@ class CommentServiceTest {
         email: String = "email@email.com",
         username: String = "username",
         password: String = "password",
-        role: Role = Role.USER
+        role: Role = Role.USER,
     ) = User(id = userId, email = email, username = username, password = password, role = role)
 
     private fun createUserDto(
         id: Long = 1L,
         email: String = "email@email.com",
         username: String = "username",
-        role: Role = Role.USER
+        role: Role = Role.USER,
     ) = UserDto(id, email, username, role)
 
     private fun createArticle(
         articleId: Long = 1L,
         title: String = "title",
         content: String = "content",
-        user: User = createUser()
+        user: User = createUser(),
     ) = Article(articleId, title, content, user)
 
     private fun createComment(
         id: Long = 1L,
         content: String = "content",
         user: User = createUser(),
-        article: Article = createArticle()
+        article: Article = createArticle(),
     ) = Comment(id, content, user, article)
-
 }

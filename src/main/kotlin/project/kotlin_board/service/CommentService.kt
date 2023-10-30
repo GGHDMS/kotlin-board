@@ -29,7 +29,7 @@ class CommentService(
         val article = validateArticleById(articleId)
 
         val comment = commentRepository.save(
-            Comment(content = request.content, user = user, article = article)
+            Comment(content = request.content, user = user, article = article),
         )
 
         user.addComment(comment)
@@ -37,7 +37,9 @@ class CommentService(
 
         // 댓글 저장
         return CommentResponse(
-            id = comment.id, email = comment.user.email, content = comment.content,
+            id = comment.id,
+            email = comment.user.email,
+            content = comment.content,
         )
     }
 
@@ -60,7 +62,9 @@ class CommentService(
         val savedComment = commentRepository.save(comment)
 
         return CommentResponse(
-            id = savedComment.id, email = savedComment.user.email, content = savedComment.content,
+            id = savedComment.id,
+            email = savedComment.user.email,
+            content = savedComment.content,
         )
     }
 
@@ -91,6 +95,4 @@ class CommentService(
         return commentRepository.findByIdAndArticleId(commentId, articleId)
             ?: throw BoardApplicationException(ErrorCode.COMMENT_NOT_FOUND)
     }
-
-
 }

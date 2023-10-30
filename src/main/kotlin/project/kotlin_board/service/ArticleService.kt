@@ -16,7 +16,7 @@ import project.kotlin_board.model.repository.UserRepository
 @Transactional
 class ArticleService(
     private val articleRepository: ArticleRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
 ) {
 
     fun create(request: ArticleRequest, userDto: UserDto): ArticleResponse {
@@ -24,13 +24,16 @@ class ArticleService(
 
         // 생성
         val article = articleRepository.save(
-            Article(title = request.title, content = request.content, user = user)
+            Article(title = request.title, content = request.content, user = user),
         )
 
         user.addArticle(article)
 
         return ArticleResponse(
-            id = article.id, email = article.user.email, title = article.title, content = article.content
+            id = article.id,
+            email = article.user.email,
+            title = article.title,
+            content = article.content,
         )
     }
 
@@ -50,7 +53,7 @@ class ArticleService(
             id = savedArticle.id,
             email = savedArticle.user.email,
             title = savedArticle.title,
-            content = savedArticle.content
+            content = savedArticle.content,
         )
     }
 

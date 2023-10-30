@@ -15,29 +15,28 @@ import project.kotlin_board.model.entity.User
 import project.kotlin_board.model.repository.UserRepository
 import project.kotlin_board.security.jwt.JwtGenerator
 
-
 @Service
 @Transactional
 class UserService(
     private val userRepository: UserRepository,
     private val encoder: BCryptPasswordEncoder,
-    private val jwtGenerator: JwtGenerator
+    private val jwtGenerator: JwtGenerator,
 ) {
 
     fun signUp(request: SignUpRequest): UserResponse {
-        //중복된 회원이 있는지 확인 필요함
+        // 중복된 회원이 있는지 확인 필요함
         userRepository.findByEmail(request.email)?.let {
             throw BoardApplicationException(ErrorCode.DUPLICATED_EMAIL)
         }
 
-        //저장하는 로직 필요함
+        // 저장하는 로직 필요함
         val hashedPassword = encoder.encode(request.password)
 
         val user = User(
             email = request.email,
-            password = hashedPassword,  // Use the hashed password here
+            password = hashedPassword, // Use the hashed password here
             username = request.username,
-            role = request.role
+            role = request.role,
         )
 
         // Save the User entity
@@ -46,7 +45,7 @@ class UserService(
         return UserResponse(
             email = savedUser.email,
             username = savedUser.username,
-            role = savedUser.role
+            role = savedUser.role,
         )
     }
 
@@ -72,7 +71,7 @@ class UserService(
             username = user.username,
             role = user.role,
             accessToken = accessToken,
-            refreshToken = refreshToken
+            refreshToken = refreshToken,
         )
     }
 
@@ -81,7 +80,6 @@ class UserService(
         val refreshToken = authorization.split(" ")[1]
 
         if (user.refreshToken != refreshToken) {
-
             user.refreshToken = null
             userRepository.save(user)
 
@@ -97,7 +95,7 @@ class UserService(
 
         return RefreshResponse(
             accessToken = accessToken,
-            refreshToken = newRefreshToken
+            refreshToken = newRefreshToken,
         )
     }
 
@@ -107,6 +105,4 @@ class UserService(
         // 유저 삭제
         userRepository.delete(user)
     }
-
-
 }

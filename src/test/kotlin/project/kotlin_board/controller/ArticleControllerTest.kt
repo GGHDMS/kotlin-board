@@ -24,7 +24,6 @@ import project.kotlin_board.dto.response.ArticleResponse
 import project.kotlin_board.model.Role
 import project.kotlin_board.service.ArticleService
 
-
 @DisplayName("게시글 컨트롤러 테스트")
 @AutoConfigureMockMvc
 @SpringBootTest
@@ -38,29 +37,27 @@ class ArticleControllerTest {
     @Autowired
     private lateinit var objectMapper: ObjectMapper
 
-
     @DisplayName("게시글 생성 - 정상 요청")
     @Test
     @WithCustomMockUser
     fun givenArticle_whenCreatingArticle_thenCreateArticle() {
-        //given
+        // given
         val request = createArticleRequest()
         val response = createArticleResponse()
         val userDto = createUserDto()
 
         given(articleService.create(request, userDto)).willReturn(response)
 
-        //when & then
+        // when & then
         mvc.perform(
             post("/api/articles")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsBytes(request))
+                .content(objectMapper.writeValueAsBytes(request)),
         )
             .andExpect(status().isCreated)
             .andExpect(jsonPath("$.title").value(response.title))
             .andExpect(jsonPath("$.content").value(response.content))
     }
-
 
     @DisplayName("게시글 생성시 title 과 content 의 값은 Blank 이면 예외를 반환.")
     @ParameterizedTest
@@ -69,32 +66,31 @@ class ArticleControllerTest {
     fun givenBlankValue_whenCreatingArticle_thenReturnException(request: ArticleRequest) {
         // given:
 
-        //when & then
+        // when & then
         mvc.perform(
             post("/api/articles")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsBytes(request))
+                .content(objectMapper.writeValueAsBytes(request)),
         )
             .andExpect(status().isBadRequest)
-
     }
 
     @DisplayName("게시글 수정 - 정상 요청")
     @Test
     @WithCustomMockUser
     fun givenArticle_whenUpdatingArticle_thenUpdateArticle() {
-        //given
+        // given
         val articleId = 1L
         val request = createArticleRequest()
         val response = createArticleResponse()
         val userDto = createUserDto()
         given(articleService.update(articleId, request, userDto)).willReturn(response)
 
-        //when & then
+        // when & then
         mvc.perform(
             put("/api/articles/$articleId")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsBytes(request))
+                .content(objectMapper.writeValueAsBytes(request)),
         )
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.id").value(response.id))
@@ -110,29 +106,28 @@ class ArticleControllerTest {
         // given:
         val articleId = 1L
 
-        //when & then
+        // when & then
         mvc.perform(
             put("/api/articles/$articleId")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsBytes(request))
+                .content(objectMapper.writeValueAsBytes(request)),
         )
             .andExpect(status().isBadRequest)
     }
-
 
     @DisplayName("게시글 삭제- 정상 요청")
     @Test
     @WithCustomMockUser
     fun givenArticleDelete_whenDeletingArticle_thenDeleteArticle() {
-        //given
+        // given
         val articleId = 1L
         val userDto = createUserDto()
         willDoNothing().given(articleService).delete(articleId, userDto)
 
-        //when & then
+        // when & then
         mvc.perform(
             delete("/api/articles/$articleId")
-                .contentType(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON),
         )
             .andExpect(status().isOk)
     }
@@ -141,31 +136,30 @@ class ArticleControllerTest {
         @JvmStatic
         fun blankArticleProvider() = listOf(
             Arguments.of(ArticleRequest("", "content")),
-            Arguments.of(ArticleRequest( " ", "content")),
-            Arguments.of(ArticleRequest( "title", " ")),
-            Arguments.of(ArticleRequest( "title", "")),
-            Arguments.of(ArticleRequest( "", "")),
-            Arguments.of(ArticleRequest( " ", " "))
+            Arguments.of(ArticleRequest(" ", "content")),
+            Arguments.of(ArticleRequest("title", " ")),
+            Arguments.of(ArticleRequest("title", "")),
+            Arguments.of(ArticleRequest("", "")),
+            Arguments.of(ArticleRequest(" ", " ")),
         )
     }
 
     private fun createArticleRequest(
         title: String = "title",
-        content: String = "content"
+        content: String = "content",
     ) = ArticleRequest(title, content)
 
     private fun createArticleResponse(
         id: Long = 1L,
         email: String = "email@email.com",
         title: String = "title",
-        content: String = "content"
+        content: String = "content",
     ) = ArticleResponse(id, email, title, content)
 
     private fun createUserDto(
         id: Long = 1L,
         email: String = "email@email.com",
-        username : String = "username",
-        role : Role = Role.USER
+        username: String = "username",
+        role: Role = Role.USER,
     ) = UserDto(id, email, username, role)
-
 }

@@ -33,13 +33,12 @@ class ArticleServiceTest {
     @Mock
     lateinit var userRepository: UserRepository
 
-
-    //TODO : findByIdOrNull 이 mockito 에 없어서 이 함수를 직접적으로 비교 할 수 없어 findById 를 사용해 Optional 을 이용해 테스트 작성
+    // TODO : findByIdOrNull 이 mockito 에 없어서 이 함수를 직접적으로 비교 할 수 없어 findById 를 사용해 Optional 을 이용해 테스트 작성
 
     @DisplayName("게시글 생성 요청 - 정상 동작")
     @Test
     fun givenArticleInfo_whenCreatingArticle_thenCreateArticle() {
-        //given
+        // given
         val request = createArticleRequest()
         val userDto = createUserDto()
         val user = createUser()
@@ -47,10 +46,10 @@ class ArticleServiceTest {
         given(userRepository.getReferenceById(userDto.id)).willReturn(user)
         given(articleRepository.save(any(Article::class.java))).willReturn(createArticle())
 
-        //when
+        // when
         val result = sut.create(request, userDto)
 
-        //then
+        // then
         then(articleRepository).should().save(any(Article::class.java))
         assertThat(result.title).isEqualTo(request.title)
         assertThat(result.content).isEqualTo(request.content)
@@ -59,7 +58,7 @@ class ArticleServiceTest {
     @DisplayName("게시글 수정 요청 - 정상 동작")
     @Test
     fun givenArticle_whenUpdatingArticle_thenUpdateArticle() {
-        //given
+        // given
         val request = createArticleRequest()
         val user = createUser()
         val userDto = createUserDto()
@@ -71,10 +70,10 @@ class ArticleServiceTest {
         given(articleRepository.findById(articleId)).willReturn(Optional.of(originalArticle))
         given(articleRepository.save(any(Article::class.java))).willReturn(updatedArticle)
 
-        //when
+        // when
         val result = sut.update(articleId, request, userDto)
 
-        //then
+        // then
         then(articleRepository).should().save(any(Article::class.java))
         assertThat(result.title).isEqualTo(request.title)
         assertThat(result.content).isEqualTo(request.content)
@@ -83,7 +82,7 @@ class ArticleServiceTest {
     @DisplayName("존재 하지 않는 게시글 수정 요청시 예외를 반환한다.")
     @Test
     fun givenNonExistingArticle_whenUpdatingArticle_thenReturnException() {
-        //given
+        // given
         val request = createArticleRequest()
         val user = createUser()
         val userDto = createUserDto()
@@ -92,7 +91,7 @@ class ArticleServiceTest {
         given(userRepository.getReferenceById(userDto.id)).willReturn(user)
         given(articleRepository.findById(articleId)).willReturn(Optional.empty())
 
-        //when & then
+        // when & then
         assertThatThrownBy { sut.update(articleId, request, userDto) }
             .isInstanceOf(BoardApplicationException::class.java)
             .extracting("errorCode")
@@ -102,7 +101,7 @@ class ArticleServiceTest {
     @DisplayName("게시글 작성자가 아닌 사람이 수정 요청하면, 예외를 반환한다.")
     @Test
     fun givenDifferUser_whenUpdatingArticle_thenReturnException() {
-        //given
+        // given
         val request = createArticleRequest()
 
         val originalAuthor = createUser(2L, "original@email.com")
@@ -115,7 +114,7 @@ class ArticleServiceTest {
         given(userRepository.getReferenceById(userDto.id)).willReturn(requestUser)
         given(articleRepository.findById(articleId)).willReturn(Optional.of(article))
 
-        //when & then
+        // when & then
         assertThatThrownBy { sut.update(articleId, request, userDto) }
             .isInstanceOf(BoardApplicationException::class.java)
             .extracting("errorCode")
@@ -125,7 +124,7 @@ class ArticleServiceTest {
     @DisplayName("게시글 삭제 - 정상 요청")
     @Test
     fun givenArticle_whenDeletingArticle_thenDeleteArticle() {
-        //given
+        // given
         val userDto = createUserDto()
         val user = createUser()
         val article = createArticle()
@@ -135,17 +134,17 @@ class ArticleServiceTest {
         given(articleRepository.findById(articleId)).willReturn(Optional.of(article))
         willDoNothing().given(articleRepository).delete(article)
 
-        //when
+        // when
         sut.delete(articleId, userDto)
 
-        //then
+        // then
         then(articleRepository).should().delete(article)
     }
 
     @DisplayName("존재하지 않는 게시글 삭제 요청시, 예외를 반환한다.")
     @Test
     fun givenNonExistingArticle_whenDeletingArticle_thenReturnException() {
-        //given
+        // given
         val userDto = createUserDto()
         val user = createUser()
         val articleId = 1L
@@ -153,7 +152,7 @@ class ArticleServiceTest {
         given(userRepository.getReferenceById(userDto.id)).willReturn(user)
         given(articleRepository.findById(articleId)).willReturn(Optional.empty())
 
-        //when & then
+        // when & then
         assertThatThrownBy { sut.delete(articleId, userDto) }
             .isInstanceOf(BoardApplicationException::class.java)
             .extracting("errorCode")
@@ -163,7 +162,7 @@ class ArticleServiceTest {
     @DisplayName("게시글 작성자가 아닌 사람이 삭제 요청하면, 예외를 반환한다.")
     @Test
     fun givenDifferUser_whenDeletingArticle_thenReturnException() {
-        //given
+        // given
         val userDto = createUserDto()
 
         val originalAuthor = createUser(2L, "original@email.com")
@@ -175,7 +174,7 @@ class ArticleServiceTest {
         given(userRepository.getReferenceById(userDto.id)).willReturn(requestUser)
         given(articleRepository.findById(articleId)).willReturn(Optional.of(article))
 
-        //when & then
+        // when & then
         assertThatThrownBy { sut.delete(articleId, userDto) }
             .isInstanceOf(BoardApplicationException::class.java)
             .extracting("errorCode")
@@ -185,7 +184,7 @@ class ArticleServiceTest {
     private fun createArticle(
         user: User = createUser(),
         title: String = "title",
-        content: String = "content"
+        content: String = "content",
     ) = Article(1L, title, content, user)
 
     private fun createUser(
@@ -193,20 +192,18 @@ class ArticleServiceTest {
         email: String = "email@email.com",
         username: String = "username",
         password: String = "password",
-        role: Role = Role.USER
+        role: Role = Role.USER,
     ) = User(id = userId, email = email, username = username, password = password, role = role)
 
     private fun createUserDto(
         id: Long = 1L,
         email: String = "email@email.com",
         username: String = "username",
-        role: Role = Role.USER
+        role: Role = Role.USER,
     ) = UserDto(id, email, username, role)
 
     private fun createArticleRequest(
         title: String = "title",
-        content: String = "content"
+        content: String = "content",
     ) = ArticleRequest(title, content)
-
-
 }
