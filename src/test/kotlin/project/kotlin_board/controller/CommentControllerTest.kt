@@ -33,7 +33,7 @@ class CommentControllerTest {
     private lateinit var mvc: MockMvc
 
     @MockBean
-    private lateinit var commentService : CommentService
+    private lateinit var commentService: CommentService
 
     @Autowired
     private lateinit var objectMapper: ObjectMapper
@@ -42,24 +42,23 @@ class CommentControllerTest {
     @Test
     @WithCustomMockUser
     fun givenComment_whenCreatingComment_thenCreateComment() {
-        //given
+        // given
         val articleId = 1L
         val request = createCommentRequest()
         val response = createCommentResponse()
         val userDto = createUserDto()
         given(commentService.create(articleId, request, userDto)).willReturn(response)
 
-        //when & then
+        // when & then
         mvc.perform(
             post("/api/articles/$articleId/comments")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsBytes(request))
+                .content(objectMapper.writeValueAsBytes(request)),
         )
             .andExpect(status().isCreated)
             .andExpect(jsonPath("$.email").value(response.email))
             .andExpect(jsonPath("$.content").value(response.content))
     }
-
 
     @DisplayName("댓글 생성시 title 과 content 의 값은 Blank 이면 예외를 반환.")
     @ParameterizedTest
@@ -69,21 +68,20 @@ class CommentControllerTest {
         // given:
         val articleId = 1L
 
-        //when & then
+        // when & then
         mvc.perform(
             post("/api/articles/$articleId/comments")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsBytes(request))
+                .content(objectMapper.writeValueAsBytes(request)),
         )
             .andExpect(status().isBadRequest)
-
     }
 
     @DisplayName("댓글 수정 - 정상 요청")
     @Test
     @WithCustomMockUser
     fun givenComment_whenUpdatingComment_thenUpdateComment() {
-        //given
+        // given
         val articleId = 1L
         val commentId = 1L
         val request = createCommentRequest()
@@ -92,11 +90,11 @@ class CommentControllerTest {
 
         given(commentService.update(articleId, commentId, request, userDto)).willReturn(response)
 
-        //when & then
+        // when & then
         mvc.perform(
             put("/api/articles/$articleId/comments/$commentId")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsBytes(request))
+                .content(objectMapper.writeValueAsBytes(request)),
         )
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.id").value(response.id))
@@ -112,31 +110,30 @@ class CommentControllerTest {
         val articleId = 1L
         val commentId = 1L
 
-        //when & then
+        // when & then
         mvc.perform(
             put("/api/articles/$articleId/comments/$commentId")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsBytes(request))
+                .content(objectMapper.writeValueAsBytes(request)),
         )
             .andExpect(status().isBadRequest)
     }
-
 
     @DisplayName("댓글 삭제- 정상 요청")
     @Test
     @WithCustomMockUser
     fun givenCommentDelete_whenDeletingComment_thenDeleteComment() {
-        //given
+        // given
         val articleId = 1L
         val commentId = 1L
         val userDto = createUserDto()
         willDoNothing().given(commentService).delete(articleId, commentId, userDto)
 
-        //when & then
+        // when & then
         mvc.perform(
             delete("/api/articles/$articleId/comments/$commentId")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsBytes(userDto))
+                .content(objectMapper.writeValueAsBytes(userDto)),
         )
             .andExpect(status().isOk)
     }
@@ -150,19 +147,19 @@ class CommentControllerTest {
     }
 
     private fun createCommentRequest(
-        content: String = "content"
+        content: String = "content",
     ) = CommentRequest(content)
 
     private fun createCommentResponse(
         id: Long = 1L,
         email: String = "email@email.com",
-        content: String = "content"
+        content: String = "content",
     ) = CommentResponse(id, email, content)
 
     private fun createUserDto(
         id: Long = 1L,
         email: String = "email@email.com",
-        username : String = "username",
-        role : Role = Role.USER
+        username: String = "username",
+        role: Role = Role.USER,
     ) = UserDto(id, email, username, role)
 }

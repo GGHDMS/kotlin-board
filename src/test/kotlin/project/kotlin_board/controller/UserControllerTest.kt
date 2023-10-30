@@ -20,7 +20,9 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPat
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import project.kotlin_board.annotation.WithCustomMockUser
 import project.kotlin_board.dto.UserDto
+import project.kotlin_board.dto.request.SignInRequest
 import project.kotlin_board.dto.request.SignUpRequest
+import project.kotlin_board.dto.response.SignInResponse
 import project.kotlin_board.dto.response.UserResponse
 import project.kotlin_board.exception.BoardApplicationException
 import project.kotlin_board.exception.ErrorCode
@@ -40,20 +42,44 @@ class UserControllerTest {
     @Autowired
     private lateinit var objectMapper: ObjectMapper
 
+    @DisplayName("로그인 - 정상 호출")
+    @Test
+    fun givenSignInRequest_whenRequestingSignIn_thenReturnSignInResponse() {
+        // given
+        val request = createSignInRequest()
+        val response = createSignInResponse()
+
+        given(userService.signIn(request)).willReturn(response)
+
+        // when
+        val result = mvc.perform(
+            post("/api/users/sign-in")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsBytes(request)),
+        )
+
+        // then
+        result
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.accessToken").value(response.accessToken))
+            .andExpect(jsonPath("$.refreshToken").value(response.refreshToken))
+            .andExpect(jsonPath("$.email").value(response.email))
+    }
+
     @DisplayName("회원 가입 - 정상 호출")
     @Test
     fun givenSignUpRequest_whenRequestingSignUp_thenReturnUserResponse() {
-        //given
+        // given
         val request = createSignupRequest()
         val response = createUserResponse()
 
         given(userService.signUp(request)).willReturn(response)
 
-        //when & then
+        // when & then
         mvc.perform(
             post("/api/users/sign-up")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsBytes(request))
+                .content(objectMapper.writeValueAsBytes(request)),
         )
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.email").value(response.email))
@@ -63,14 +89,14 @@ class UserControllerTest {
     @DisplayName("회원 가입시 이미 가입된 이메일로 가입 요청시 에러 반환")
     @Test
     fun givenExistingEmail_whenRequestingSignUp_thenReturnError() {
-        //given
+        // given
         val request = createSignupRequest()
         given(userService.signUp(request)).willThrow(BoardApplicationException(ErrorCode.DUPLICATED_EMAIL))
 
         mvc.perform(
             post("/api/users/sign-up")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsBytes(request))
+                .content(objectMapper.writeValueAsBytes(request)),
         ).andExpect(status().isConflict())
     }
 
@@ -80,14 +106,13 @@ class UserControllerTest {
     fun givenWrongValue_whenRequestingSignUp_thenReturnException(request: SignUpRequest) {
         // given:
 
-        //when & then
+        // when & then
         mvc.perform(
             post("/api/users/sign-up")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsBytes(request))
+                .content(objectMapper.writeValueAsBytes(request)),
         )
             .andExpect(status().isBadRequest)
-
     }
 
     @DisplayName("존재하는 유저 삭제 요청 - 정상 호출")
@@ -100,39 +125,52 @@ class UserControllerTest {
         mvc.perform(
             delete("/api/users")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsBytes(request))
+                .content(objectMapper.writeValueAsBytes(request)),
         ).andExpect(status().isOk())
     }
 
     companion object {
         @JvmStatic
         fun wrongSignupProvider() = listOf(
-            Arguments.of(SignUpRequest("","password", "username", Role.USER)),
+            Arguments.of(SignUpRequest("", "password", "username", Role.USER)),
             Arguments.of(SignUpRequest(" ", "password", "username", Role.USER)),
             Arguments.of(SignUpRequest("email@email.com", "", "username", Role.USER)),
             Arguments.of(SignUpRequest("email@email.com", " ", "username", Role.USER)),
             Arguments.of(SignUpRequest("email", "password", "username", Role.USER)),
-            Arguments.of(SignUpRequest("email@", "password", "username", Role.USER))
+            Arguments.of(SignUpRequest("email@", "password", "username", Role.USER)),
         )
     }
+
+    private fun createSignInRequest(
+        email: String = "email@email.com",
+        password: String = "password",
+    ) = SignInRequest(email, password)
+
+    private fun createSignInResponse(
+        email: String = "email@email.com",
+        username: String = "username",
+        role: Role = Role.USER,
+        accessToken: String = "accessToken",
+        refreshToken: String = "refreshToken",
+    ) = SignInResponse(email, username, role, accessToken, refreshToken)
 
     private fun createSignupRequest(
         email: String = "email@email.com",
         password: String = "password",
         username: String = "username",
-        role: Role = Role.USER
+        role: Role = Role.USER,
     ) = SignUpRequest(email, password, username, Role.USER)
 
     private fun createUserResponse(
         email: String = "email@email.com",
         username: String = "username",
-        role: Role = Role.USER
+        role: Role = Role.USER,
     ) = UserResponse(email, username, Role.USER)
 
     private fun createUserDto(
         id: Long = 1L,
         email: String = "email@email.com",
-        username : String = "username",
-        role : Role = Role.USER
+        username: String = "username",
+        role: Role = Role.USER,
     ) = UserDto(id, email, username, role)
 }
