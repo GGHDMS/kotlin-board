@@ -3,7 +3,11 @@
 name: board-deploy
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
 
 env: # 새로 추가한 부분
   S3_BUCKET_NAME: kotlin-board
