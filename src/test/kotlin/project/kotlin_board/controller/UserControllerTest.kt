@@ -159,13 +159,13 @@ class UserControllerTest {
         password: String = "password",
         username: String = "username",
         role: Role = Role.USER,
-    ) = SignUpRequest(email, password, username, Role.USER)
+    ) = SignUpRequest(email, password, username, role)
 
     private fun createUserResponse(
         email: String = "email@email.com",
         username: String = "username",
         role: Role = Role.USER,
-    ) = UserResponse(email, username, Role.USER)
+    ) = UserResponse(email, username, role)
 
     private fun createUserDto(
         id: Long = 1L,
