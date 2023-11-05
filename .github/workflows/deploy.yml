@@ -26,6 +26,8 @@ jobs:
         uses: mirromutth/mysql-action@v1.1
         with:
           character set server: 'utf8' 
+          mysql database: 'testdb'
+          mysql root password: ${{ secrets.DB_PASSWORD }}
           
       - name: Build with Gradle
         run: ./gradlew build
