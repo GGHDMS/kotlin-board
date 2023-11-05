@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: ${DB_ENDPOINT}
+    url: jdbc:mysql://${DB_ENDPOINT}/kotlin?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
 
