@@ -3,9 +3,8 @@
 name: board-deploy
 
 on:
-  pull_request:
+  push:
     branches: [ "main" ]
-
 
 env: # 새로 추가한 부분
   S3_BUCKET_NAME: kotlin-board
