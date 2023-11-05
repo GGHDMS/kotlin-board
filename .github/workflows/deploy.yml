@@ -23,11 +23,12 @@ jobs:
         shell: bash
 
       - name: Setup MySQL
-        uses: mirromutth/mysql-action@v1.1
+        uses: samin/mysql-action@v1
         with:
-          character set server: 'utf8' 
-          mysql database: 'testdb'
-          mysql root password: ${{ secrets.DB_PASSWORD }}
+          character set server: 'utf8'
+          mysql database: 'kotiln'
+          mysql user: 'test'
+          mysql password: ${{ secrets.MYSQL_PASSWORD }} # github Secret 탭에서 설정하세요!
           
       - name: Build with Gradle
         run: ./gradlew build
