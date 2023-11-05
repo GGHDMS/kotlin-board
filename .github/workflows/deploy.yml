@@ -22,6 +22,11 @@ jobs:
         run: chmod +x gradlew
         shell: bash
 
+      - name: Setup MySQL
+        uses: mirromutth/mysql-action@v1.1
+        with:
+          character set server: 'utf8' 
+          
       - name: Build with Gradle
         run: ./gradlew build
         shell: bash
