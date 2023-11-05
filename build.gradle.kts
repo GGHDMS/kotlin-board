@@ -26,15 +26,15 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
-	runtimeOnly("com.mysql:mysql-connector-j")
+    runtimeOnly("com.mysql:mysql-connector-j")
 
     // Swagger
     implementation("org.springdoc:springdoc-openapi-ui:1.6.9")
 
-	// JWT
-	implementation("io.jsonwebtoken:jjwt:0.9.1")
+    // JWT
+    implementation("io.jsonwebtoken:jjwt:0.9.1")
 
-	testImplementation("com.h2database:h2")
+    testImplementation("com.h2database:h2")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
 }
