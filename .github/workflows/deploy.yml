@@ -9,7 +9,7 @@ on:
 env: # 새로 추가한 부분
   S3_BUCKET_NAME: kotlin-board
   PROJECT_NAME: kotlin-board
-  RESOURCE_PATH: ./src/main/resources/application.yaml
+  RESOURCE_PATH: ./src/main/resources/application.yml
 
 jobs:
   build:
