@@ -22,19 +22,10 @@ echo "> Start health check of WAS at 'http://127.0.0.1:${TARGET_PORT}' ..."
 for RETRY_COUNT in 1 2 3 4 5 6 7 8 9 10
 do
     echo "> #${RETRY_COUNT} trying..."
-    RESPONSE_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:${TARGET_PORT})
+    RESPONSE_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:${TARGET_PORT}/swagger-ui/index.html#/)
 
-    if [[ ${RESPONSE_CODE} -ge 200 && ${RESPONSE_CODE} -lt 300 ]]; then
-        echo "> Server is up"
-        exit 0
-    elif [[ ${RESPONSE_CODE} -ge 300 && ${RESPONSE_CODE} -lt 400 ]]; then
-        echo "> Redirection, server is up"
-        exit 0
-    elif [[ ${RESPONSE_CODE} -ge 400 && ${RESPONSE_CODE} -lt 500 ]]; then
-        echo "> Client error, server may be up"
-        exit 0
-    elif [[ ${RESPONSE_CODE} -ge 500 && ${RESPONSE_CODE} -lt 600 ]]; then
-        echo "> Server error, server may be up"
+    if [ ${RESPONSE_CODE} -eq 200 ]; then
+        echo "> New WAS successfully running"
         exit 0
     elif [ ${RETRY_COUNT} -eq 10 ]; then
         echo "> Health check failed."

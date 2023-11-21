@@ -205,7 +205,7 @@ class CommentServiceTest {
         willDoNothing().given(commentRepository).delete(comment)
 
         // when
-        val result = sut.delete(articleId, commentId, userDto)
+        sut.delete(articleId, commentId, userDto)
 
         // then
         then(userRepository).should().getReferenceById(user.id)
