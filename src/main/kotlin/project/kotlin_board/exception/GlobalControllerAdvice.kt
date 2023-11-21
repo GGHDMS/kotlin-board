@@ -4,6 +4,7 @@ import com.fasterxml.jackson.module.kotlin.MissingKotlinParameterException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.validation.BindException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
@@ -56,6 +57,40 @@ class GlobalControllerAdvice {
             time = LocalDateTime.now(),
             status = HttpStatus.BAD_REQUEST,
             message = "Missing parameter: ${e.parameter.name}",
+            requestURI = request.getDescription(false),
+        )
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse)
+    }
+
+    @ExceptionHandler(BindException::class)
+    fun handleBindException(
+        e: BindException,
+        request: WebRequest,
+    ): ResponseEntity<ErrorResponse> {
+        log.error("Bind error occurs {}", e.toString())
+
+        val errorResponse = ErrorResponse(
+            time = LocalDateTime.now(),
+            status = HttpStatus.BAD_REQUEST,
+            message = e.bindingResult.fieldErrors.firstOrNull()?.defaultMessage ?: "Bind error",
+            requestURI = request.getDescription(false),
+        )
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse)
+    }
+
+    @ExceptionHandler(AssertionError::class)
+    fun handleAssertionError(
+        e: AssertionError,
+        request: WebRequest,
+    ): ResponseEntity<ErrorResponse> {
+        log.error("Assertion error occurs {}", e.toString())
+
+        val errorResponse = ErrorResponse(
+            time = LocalDateTime.now(),
+            status = HttpStatus.BAD_REQUEST,
+            message = e.message ?: "Assertion error",
             requestURI = request.getDescription(false),
         )
 
